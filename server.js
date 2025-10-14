@@ -63,9 +63,9 @@ const dateMock = require('./utils/dateMock');
 app.get('/', async (req, res) => {
   try {
     // Get featured events from all categories
-    const featuredMovies = await Movie.find().limit(3).populate('organizer', 'name');
-    const featuredPlays = await StagePlays.find().limit(3).populate('organizer', 'name');
-    const featuredOrchestra = await LiveOrchestra.find().limit(3).populate('organizer', 'name');
+    const featuredMovies = await Movie.find().limit(3);
+    const featuredPlays = await StagePlays.find().limit(3);
+    const featuredOrchestra = await LiveOrchestra.find().limit(3);
     
     // Combine and shuffle featured events
     const allFeatured = [...featuredMovies, ...featuredPlays, ...featuredOrchestra];
@@ -111,9 +111,9 @@ app.get('/api/statistics', async (req, res) => {
 // API Routes for featured events
 app.get('/api/events/featured', async (req, res) => {
   try {
-    const featuredMovies = await Movie.find().limit(2).populate('organizer', 'name');
-    const featuredPlays = await StagePlays.find().limit(2).populate('organizer', 'name');
-    const featuredOrchestra = await LiveOrchestra.find().limit(2).populate('organizer', 'name');
+    const featuredMovies = await Movie.find().limit(2);
+    const featuredPlays = await StagePlays.find().limit(2);
+    const featuredOrchestra = await LiveOrchestra.find().limit(2);
     
     const allFeatured = [...featuredMovies, ...featuredPlays, ...featuredOrchestra];
     const shuffledFeatured = allFeatured.sort(() => 0.5 - Math.random()).slice(0, 6);

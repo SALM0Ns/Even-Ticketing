@@ -3,6 +3,7 @@ const router = express.Router();
 const Movie = require('../models/Movie');
 const StagePlays = require('../models/StagePlays');
 const LiveOrchestra = require('../models/LiveOrchestra');
+// const User = require('../models/User'); // Commented out User model import to fix populate error
 
 // Get all events (with category filtering)
 router.get('/', async (req, res) => {
@@ -13,27 +14,38 @@ router.get('/', async (req, res) => {
     if (category) {
       switch (category) {
         case 'movies':
-          events = await Movie.find({ status: 'upcoming' }).populate('organizer', 'name');
+          events = await Movie.find();
+          events = events.map(event => ({ ...event.toObject(), category: 'movies' }));
           break;
         case 'stage-plays':
-          events = await StagePlays.find({ status: 'upcoming' }).populate('organizer', 'name');
+          events = await StagePlays.find();
+          events = events.map(event => ({ ...event.toObject(), category: 'stage-plays' }));
           break;
         case 'orchestra':
-          events = await LiveOrchestra.find({ status: 'upcoming' }).populate('organizer', 'name');
+          events = await LiveOrchestra.find();
+          events = events.map(event => ({ ...event.toObject(), category: 'orchestra' }));
           break;
         default:
           // Get events from all categories
-          const movies = await Movie.find({ status: 'upcoming' }).populate('organizer', 'name');
-          const plays = await StagePlays.find({ status: 'upcoming' }).populate('organizer', 'name');
-          const orchestra = await LiveOrchestra.find({ status: 'upcoming' }).populate('organizer', 'name');
-          events = [...movies, ...plays, ...orchestra];
+          const movies = await Movie.find();
+          const plays = await StagePlays.find();
+          const orchestra = await LiveOrchestra.find();
+          events = [
+            ...movies.map(event => ({ ...event.toObject(), category: 'movies' })),
+            ...plays.map(event => ({ ...event.toObject(), category: 'stage-plays' })),
+            ...orchestra.map(event => ({ ...event.toObject(), category: 'orchestra' }))
+          ];
       }
     } else {
       // Get events from all categories
-      const movies = await Movie.find({ status: 'upcoming' }).populate('organizer', 'name');
-      const plays = await StagePlays.find({ status: 'upcoming' }).populate('organizer', 'name');
-      const orchestra = await LiveOrchestra.find({ status: 'upcoming' }).populate('organizer', 'name');
-      events = [...movies, ...plays, ...orchestra];
+        const movies = await Movie.find();
+        const plays = await StagePlays.find();
+        const orchestra = await LiveOrchestra.find();
+      events = [
+        ...movies.map(event => ({ ...event.toObject(), category: 'movies' })),
+        ...plays.map(event => ({ ...event.toObject(), category: 'stage-plays' })),
+        ...orchestra.map(event => ({ ...event.toObject(), category: 'orchestra' }))
+      ];
     }
 
     // Search functionality
@@ -88,7 +100,7 @@ router.get('/:category/:id', async (req, res) => {
     }
 
     // Find the event
-    event = await model.findById(id).populate('organizer', 'name email organizerProfile');
+    event = await model.findById(id);
     
     if (!event) {
       return res.status(404).render('404', { 
@@ -99,9 +111,8 @@ router.get('/:category/:id', async (req, res) => {
 
     // Get related events from the same category
     const relatedEvents = await model.find({ 
-      _id: { $ne: id }, 
-      status: 'upcoming' 
-    }).limit(4).populate('organizer', 'name');
+      _id: { $ne: id }
+    }).limit(4);
 
     res.render('events/show', {
       title: event.name,
@@ -127,15 +138,15 @@ router.get('/:id', async (req, res) => {
     let category = null;
 
     // Try to find in each collection
-    event = await Movie.findById(id).populate('organizer', 'name email organizerProfile');
+    event = await Movie.findById(id);
     if (event) {
       category = 'movies';
     } else {
-      event = await StagePlays.findById(id).populate('organizer', 'name email organizerProfile');
+      event = await StagePlays.findById(id);
       if (event) {
         category = 'stage-plays';
       } else {
-        event = await LiveOrchestra.findById(id).populate('organizer', 'name email organizerProfile');
+        event = await LiveOrchestra.findById(id);
         if (event) {
           category = 'orchestra';
         }
@@ -152,11 +163,11 @@ router.get('/:id', async (req, res) => {
     // Get related events from the same category
     let relatedEvents = [];
     if (category === 'movies') {
-      relatedEvents = await Movie.find({ _id: { $ne: id }, status: 'upcoming' }).limit(4).populate('organizer', 'name');
+      relatedEvents = await Movie.find({ _id: { $ne: id } }).limit(4);
     } else if (category === 'stage-plays') {
-      relatedEvents = await StagePlays.find({ _id: { $ne: id }, status: 'upcoming' }).limit(4).populate('organizer', 'name');
+      relatedEvents = await StagePlays.find({ _id: { $ne: id } }).limit(4);
     } else if (category === 'orchestra') {
-      relatedEvents = await LiveOrchestra.find({ _id: { $ne: id }, status: 'upcoming' }).limit(4).populate('organizer', 'name');
+      relatedEvents = await LiveOrchestra.find({ _id: { $ne: id } }).limit(4);
     }
 
     res.render('events/show', {

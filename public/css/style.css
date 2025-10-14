@@ -588,25 +588,26 @@ h1, h2, h3, h4, h5, h6 {
     margin-bottom: 0.25rem;
 }
 
-/* Event Poster Cards */
+/* Event Poster Cards - Horizontal Layout */
 .event-poster-card {
     cursor: pointer;
     transition: all 0.3s ease;
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     background: white;
+    height: 100%;
 }
 
 .event-poster-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
 .poster-container {
     position: relative;
     width: 100%;
-    height: 400px;
+    height: 450px;
     overflow: hidden;
     border-radius: 16px;
 }
@@ -619,7 +620,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .event-poster-card:hover .event-poster {
-    transform: scale(1.05);
+    transform: scale(1.08);
 }
 
 .poster-overlay {
@@ -631,9 +632,9 @@ h1, h2, h3, h4, h5, h6 {
     background: linear-gradient(
         to bottom,
         transparent 0%,
-        transparent 40%,
-        rgba(0, 0, 0, 0.7) 80%,
-        rgba(0, 0, 0, 0.9) 100%
+        transparent 30%,
+        rgba(0, 0, 0, 0.6) 70%,
+        rgba(0, 0, 0, 0.95) 100%
     );
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -649,36 +650,63 @@ h1, h2, h3, h4, h5, h6 {
 .overlay-content {
     color: white;
     width: 100%;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 .event-title {
-    font-size: 1.25rem;
+    font-size: 1.3rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
-    line-height: 1.3;
+    line-height: 1.2;
+    color: white;
 }
 
 .event-date,
-.event-venue,
-.event-price {
+.event-venue {
     font-size: 0.9rem;
     margin-bottom: 0.25rem;
     opacity: 0.9;
+    color: #f8f9fa;
 }
 
 .event-price {
-    font-weight: 600;
+    font-size: 1.1rem;
+    font-weight: 700;
     color: #00d4aa;
+    margin-bottom: 1rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .overlay-buttons {
-    margin-top: 1rem;
+    margin-top: 0.5rem;
 }
 
 .overlay-buttons .btn {
     border-radius: 8px;
     font-weight: 600;
     padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.overlay-buttons .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.overlay-buttons .btn-outline-light {
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.overlay-buttons .btn-outline-light:hover {
+    background: white;
+    color: #333;
+    border-color: white;
 }
 
 /* Feature Cards */
@@ -1193,22 +1221,7 @@ section {
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
 }
 
-/* Event Cards */
-.event-card {
-    position: relative;
-    overflow: hidden;
-    border-radius: 15px;
-}
-
-.event-card .card-img-top {
-    height: 200px;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
-
-.event-card:hover .card-img-top {
-    transform: scale(1.05);
-}
+/* Event Cards - Removed old styles to prevent conflicts with poster layout */
 
 .event-status {
     position: absolute;
