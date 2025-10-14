@@ -1,0 +1,113 @@
+<%- include('../partials/header') %>
+
+<div class="events-hero bg-dark text-white py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-4">
+                    <% if (currentCategory === 'all') { %>
+                        All Entertainment Events
+                    <% } else { %>
+                        <%= currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1).replace('-', ' ') %>
+                    <% } %>
+                </h1>
+                <p class="lead mb-4">Discover amazing entertainment experiences across movies, stage plays, and live orchestra performances.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5">
+    <!-- Search and Filter Section -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <form method="GET" action="/events" class="d-flex">
+                <input type="text" name="search" class="form-control me-2" placeholder="Search events..." value="<%= searchQuery %>">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+        </div>
+        <div class="col-md-4">
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-filter me-2"></i>
+                    <% if (currentCategory === 'all') { %>
+                        All Categories
+                    <% } else { %>
+                        <%= currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1).replace('-', ' ') %>
+                    <% } %>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="/events">
+                        <i class="fas fa-th-large me-2"></i>All Categories
+                    </a></li>
+                    <li><a class="dropdown-item" href="/events?category=movies">
+                        <i class="fas fa-film me-2"></i>Movies
+                    </a></li>
+                    <li><a class="dropdown-item" href="/events?category=stage-plays">
+                        <i class="fas fa-theater-masks me-2"></i>Stage Plays
+                    </a></li>
+                    <li><a class="dropdown-item" href="/events?category=orchestra">
+                        <i class="fas fa-music me-2"></i>Live Orchestra
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Events Grid -->
+    <% if (events.length > 0) { %>
+        <div class="row">
+            <% events.forEach(event => { %>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card event-card h-100 category-<%= event.category || 'default' %>">
+                        <div class="position-relative">
+                            <img src="<%= event.image || '/images/default-event.jpg' %>" class="card-img-top" alt="<%= event.name %>" style="height: 250px; object-fit: cover;">
+                            <div class="category-badge <%= event.category || 'default' %>">
+                                <i class="<%= event.getCategoryIcon ? event.getCategoryIcon() : 'fas fa-calendar' %> me-1"></i>
+                                <%= event.getCategoryDisplayName ? event.getCategoryDisplayName() : 'Event' %>
+                            </div>
+                            <div class="event-status status-upcoming">Upcoming</div>
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title"><%= event.name %></h5>
+                            <p class="card-text flex-grow-1"><%= event.description.substring(0, 120) %>...</p>
+                            <div class="mt-auto">
+                                <p class="text-muted mb-2">
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    <%= new Date(event.date).toLocaleDateString('en-US', { 
+                                        year: 'numeric', 
+                                        month: 'long', 
+                                        day: 'numeric' 
+                                    }) %>
+                                </p>
+                                <p class="text-muted mb-3">
+                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                    <%= event.location.name %>
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="h5 text-<%= event.getCategoryColor ? event.getCategoryColor() : 'primary' %> mb-0">
+                                        $<%= event.pricing.basePrice %>
+                                    </span>
+                                    <a href="/events/<%= event._id %>" class="btn btn-<%= event.getCategoryColor ? event.getCategoryColor() : 'primary' %>">
+                                        View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    <% } else { %>
+        <div class="text-center py-5">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <h3 class="text-muted">No events found</h3>
+            <p class="text-muted">Try adjusting your search criteria or browse all events.</p>
+            <a href="/events" class="btn btn-primary">View All Events</a>
+        </div>
+    <% } %>
+</div>
+
+<%- include('../partials/footer') %>

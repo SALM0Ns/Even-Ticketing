@@ -1,0 +1,467 @@
+<%- include('partials/header') %>
+
+<!-- Hero Section -->
+<div class="hero-section position-relative" style="background: linear-gradient(rgba(15,15,35,0.8), rgba(26,26,46,0.9)), url('/images/dune-poster.jpg'); background-size: cover; background-position: center; min-height: 70vh;">
+    <div class="container position-relative" style="z-index: 2;">
+        <div class="row align-items-center min-vh-70">
+            <div class="col-lg-8 col-md-10">
+                <div class="hero-content text-white">
+                    <h1 class="display-2 fw-bold mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                        CursedTicket
+                    </h1>
+                    <p class="lead fs-4 mb-4 text-light">
+                        Your premier destination for premium entertainment experiences. Discover the finest movies, stage plays, and live orchestra performances.
+                    </p>
+                    <div class="hero-stats d-flex gap-4 mb-4">
+                        <div class="stat-item">
+                            <h3 class="text-primary mb-0" id="hero-total-events">0</h3>
+                            <small class="text-light">Events</small>
+                        </div>
+                        <div class="stat-item">
+                            <h3 class="text-primary mb-0" id="hero-total-tickets">0</h3>
+                            <small class="text-light">Tickets Sold</small>
+                        </div>
+                        <div class="stat-item">
+                            <h3 class="text-primary mb-0" id="hero-total-venues">0</h3>
+                            <small class="text-light">Venues</small>
+                        </div>
+                    </div>
+                    <a href="#featured-events" class="btn btn-primary btn-lg px-4 py-3">
+                        <i class="fas fa-ticket-alt me-2"></i>Explore Events
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Featured Events Section -->
+<section id="featured-events" class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-4 fw-bold text-dark mb-3">Now Showing</h2>
+            <p class="lead text-muted">Discover amazing entertainment experiences</p>
+        </div>
+        
+        <!-- Movies Section -->
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="h2 fw-bold text-dark">
+                    <i class="fas fa-film text-primary me-2"></i>Movies
+                </h3>
+                <a href="/events?category=movies" class="btn btn-outline-primary">View All Movies</a>
+            </div>
+            <div class="row" id="movies-container">
+                <!-- Movies will be loaded here via JavaScript -->
+            </div>
+        </div>
+
+        <!-- Stage Plays Section -->
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="h2 fw-bold text-dark">
+                    <i class="fas fa-theater-masks text-success me-2"></i>Stage Plays
+                </h3>
+                <a href="/events?category=stage-plays" class="btn btn-outline-success">View All Plays</a>
+            </div>
+            <div class="row" id="stage-plays-container">
+                <!-- Stage plays will be loaded here via JavaScript -->
+            </div>
+        </div>
+
+        <!-- Live Orchestra Section -->
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="h2 fw-bold text-dark">
+                    <i class="fas fa-music text-warning me-2"></i>Live Orchestra
+                </h3>
+                <a href="/events?category=orchestra" class="btn btn-outline-warning">View All Concerts</a>
+            </div>
+            <div class="row" id="orchestra-container">
+                <!-- Orchestra events will be loaded here via JavaScript -->
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Coming Soon Section - Live Orchestra -->
+<section class="py-5 bg-dark text-white">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-4 fw-bold mb-3">
+                <i class="fas fa-music text-warning me-2"></i>Coming Soon
+            </h2>
+            <p class="lead text-light">Get ready for these exciting upcoming Live Orchestra performances</p>
+        </div>
+        <div class="row" id="coming-soon-container">
+            <!-- Coming soon Live Orchestra events will be loaded here via JavaScript -->
+        </div>
+    </div>
+</section>
+
+<!-- Starting Soon Section - Movies -->
+<section class="py-5 bg-primary text-white">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-4 fw-bold mb-3">
+                <i class="fas fa-film text-warning me-2"></i>Starting Soon
+            </h2>
+            <p class="lead">Don't miss these movies starting this week</p>
+        </div>
+        <div class="row" id="starting-soon-container">
+            <!-- Starting soon Movie events will be loaded here via JavaScript -->
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-4 fw-bold text-dark mb-3">Why Choose CursedTicket?</h2>
+            <p class="lead text-muted">Experience the difference with our premium service</p>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="feature-card text-center p-4 h-100">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-shield-alt fa-3x text-primary"></i>
+                    </div>
+                    <h4 class="fw-bold">Secure Booking</h4>
+                    <p class="text-muted">Your tickets are protected with our secure booking system and instant confirmation.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card text-center p-4 h-100">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-mobile-alt fa-3x text-success"></i>
+                    </div>
+                    <h4 class="fw-bold">Mobile Tickets</h4>
+                    <p class="text-muted">Get your tickets instantly on your phone with QR codes for easy entry.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card text-center p-4 h-100">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-headset fa-3x text-warning"></i>
+                    </div>
+                    <h4 class="fw-bold">24/7 Support</h4>
+                    <p class="text-muted">Our dedicated support team is here to help you anytime, anywhere.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// Date Mocking System for consistent behavior
+const dateMock = {
+    getCurrentDate: () => new Date('2024-12-19T10:00:00Z'),
+    getDateFromNow: (days) => {
+        const date = new Date('2024-12-19T10:00:00Z');
+        date.setDate(date.getDate() + days);
+        return date;
+    },
+    isWithinDays: (date, days) => {
+        const targetDate = new Date(date);
+        const currentDate = new Date('2024-12-19T10:00:00Z');
+        const futureDate = new Date('2024-12-19T10:00:00Z');
+        futureDate.setDate(futureDate.getDate() + days);
+        return targetDate >= currentDate && targetDate <= futureDate;
+    }
+};
+
+// Load events from database
+document.addEventListener('DOMContentLoaded', function() {
+    loadHeroStats();
+    loadMovies();
+    loadStagePlays();
+    loadOrchestra();
+    loadComingSoon();
+    loadStartingSoon();
+});
+
+function loadHeroStats() {
+    fetch('/api/statistics')
+        .then(response => response.json())
+        .then(data => {
+            // Update hero statistics
+            document.getElementById('hero-total-events').textContent = data.totalEvents + '+';
+            document.getElementById('hero-total-tickets').textContent = data.totalTickets + '+';
+            document.getElementById('hero-total-venues').textContent = data.totalOrganizers + '+';
+        })
+        .catch(error => {
+            console.error('Error loading hero statistics:', error);
+            // Fallback values if API fails
+            document.getElementById('hero-total-events').textContent = '0+';
+            document.getElementById('hero-total-tickets').textContent = '0+';
+            document.getElementById('hero-total-venues').textContent = '0+';
+        });
+}
+
+function loadMovies() {
+    fetch('/api/events/movies')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('movies-container');
+            container.innerHTML = '';
+            if (data.events.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12 text-center">
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No movies available at the moment. Check back soon!
+                        </div>
+                    </div>
+                `;
+            } else {
+                data.events.slice(0, 4).forEach(movie => {
+                    container.innerHTML += createEventCard(movie, 'movies');
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error loading movies:', error);
+            document.getElementById('movies-container').innerHTML = `
+                <div class="col-12 text-center">
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Unable to load movies at the moment. Please try again later.
+                    </div>
+                </div>
+            `;
+        });
+}
+
+function loadStagePlays() {
+    fetch('/api/events/stage-plays')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('stage-plays-container');
+            container.innerHTML = '';
+            if (data.events.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12 text-center">
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No stage plays available at the moment. Check back soon!
+                        </div>
+                    </div>
+                `;
+            } else {
+                data.events.slice(0, 4).forEach(play => {
+                    container.innerHTML += createEventCard(play, 'stage-plays');
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error loading stage plays:', error);
+            document.getElementById('stage-plays-container').innerHTML = `
+                <div class="col-12 text-center">
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Unable to load stage plays at the moment. Please try again later.
+                    </div>
+                </div>
+            `;
+        });
+}
+
+function loadOrchestra() {
+    fetch('/api/events/orchestra')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('orchestra-container');
+            container.innerHTML = '';
+            if (data.events.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12 text-center">
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No orchestra events available at the moment. Check back soon!
+                        </div>
+                    </div>
+                `;
+            } else {
+                data.events.slice(0, 4).forEach(concert => {
+                    container.innerHTML += createEventCard(concert, 'orchestra');
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error loading orchestra events:', error);
+            document.getElementById('orchestra-container').innerHTML = `
+                <div class="col-12 text-center">
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Unable to load orchestra events at the moment. Please try again later.
+                    </div>
+                </div>
+            `;
+        });
+}
+
+function loadComingSoon() {
+    // Load only Live Orchestra events for Coming Soon
+    fetch('/api/events/orchestra')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('coming-soon-container');
+            container.innerHTML = '';
+            
+            if (data.events.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12 text-center">
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No upcoming Live Orchestra events in the next 30 days. Check back soon!
+                        </div>
+                    </div>
+                `;
+            } else {
+                data.events.slice(0, 6).forEach(event => {
+                    container.innerHTML += createEventCard(event, 'orchestra', true);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error loading coming soon orchestra events:', error);
+            document.getElementById('coming-soon-container').innerHTML = `
+                <div class="col-12 text-center">
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Unable to load coming soon events at the moment. Please try again later.
+                    </div>
+                </div>
+            `;
+        });
+}
+
+function loadStartingSoon() {
+    // Load only Movie events for Starting Soon
+    fetch('/api/events/movies')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('starting-soon-container');
+            container.innerHTML = '';
+            
+            if (data.events.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12 text-center">
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No upcoming movies in the next 7 days. Check back soon!
+                        </div>
+                    </div>
+                `;
+            } else {
+                data.events.slice(0, 6).forEach(event => {
+                    container.innerHTML += createEventCard(event, 'movies', false, true);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error loading starting soon movie events:', error);
+            document.getElementById('starting-soon-container').innerHTML = `
+                <div class="col-12 text-center">
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Unable to load starting soon events at the moment. Please try again later.
+                    </div>
+                </div>
+            `;
+        });
+}
+
+function createEventCard(event, category, isComingSoon = false, isStartingSoon = false) {
+    const eventDate = new Date(event.date);
+    const formattedDate = eventDate.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
+
+    const categoryColors = {
+        'movies': 'primary',
+        'stage-plays': 'success',
+        'orchestra': 'warning'
+    };
+
+    const categoryIcons = {
+        'movies': 'fas fa-film',
+        'stage-plays': 'fas fa-theater-masks',
+        'orchestra': 'fas fa-music'
+    };
+
+    const color = categoryColors[category] || 'primary';
+    const icon = categoryIcons[category] || 'fas fa-calendar';
+    
+    // Override category for specific sections
+    if (isComingSoon) {
+        category = 'orchestra';
+        color = 'warning';
+        icon = 'fas fa-music';
+    } else if (isStartingSoon) {
+        category = 'movies';
+        color = 'primary';
+        icon = 'fas fa-film';
+    }
+
+    let badgeHtml = '';
+    if (isComingSoon) {
+        badgeHtml = '<span class="badge bg-warning text-dark position-absolute top-0 end-0 m-2">Live Orchestra</span>';
+    } else if (isStartingSoon) {
+        badgeHtml = '<span class="badge bg-danger position-absolute top-0 end-0 m-2">Movie</span>';
+    }
+
+    return `
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <div class="event-poster-card position-relative" onclick="navigateToEvent('${event._id}', '${category}')">
+                <div class="poster-container">
+                    <img src="${event.image || '/images/default-event.jpg'}" alt="${event.name}" class="event-poster">
+                    <div class="poster-overlay">
+                        <div class="overlay-content">
+                            <h5 class="event-title">${event.name}</h5>
+                            <p class="event-date">
+                                <i class="fas fa-calendar-alt me-1"></i>${formattedDate}
+                            </p>
+                            <p class="event-venue">
+                                <i class="fas fa-map-marker-alt me-1"></i>${event.location.name}
+                            </p>
+                            <p class="event-price">
+                                <i class="fas fa-tag me-1"></i>From $${event.pricing.basePrice}
+                            </p>
+                            <div class="overlay-buttons">
+                                <button class="btn btn-${color} btn-sm">
+                                    <i class="${icon} me-1"></i>View Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                ${badgeHtml}
+            </div>
+        </div>
+    `;
+}
+
+function navigateToEvent(eventId, category) {
+    window.location.href = `/events/${eventId}/book`;
+}
+
+// Smooth scrolling for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
+});
+</script>
+
+<%- include('partials/footer') %>

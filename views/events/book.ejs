@@ -1,0 +1,490 @@
+<%- include('../partials/header') %>
+
+<div class="booking-page">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Movie Information Section -->
+            <div class="col-lg-4 col-md-5">
+                <div class="movie-info-section p-4">
+                    <div class="movie-poster mb-4">
+                        <img src="<%= event.image || '/images/default-event.jpg' %>" alt="<%= event.name %>" class="img-fluid rounded-3 shadow">
+                    </div>
+                    
+                    <div class="movie-details">
+                        <h1 class="movie-title mb-3"><%= event.name %></h1>
+                        
+                        <div class="movie-meta mb-4">
+                            <div class="meta-item d-flex align-items-center mb-2">
+                                <i class="fas fa-calendar-alt text-primary me-2"></i>
+                                <span><strong>Date:</strong> <%= new Date(event.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></span>
+                            </div>
+                            <div class="meta-item d-flex align-items-center mb-2">
+                                <i class="fas fa-clock text-primary me-2"></i>
+                                <span><strong>Time:</strong> <%= new Date(event.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) %></span>
+                            </div>
+                            <div class="meta-item d-flex align-items-center mb-2">
+                                <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                                <span><strong>Venue:</strong> <%= event.location.name %></span>
+                            </div>
+                            <div class="meta-item d-flex align-items-center mb-2">
+                                <i class="fas fa-tag text-primary me-2"></i>
+                                <span><strong>From:</strong> $<%= event.pricing.basePrice %></span>
+                            </div>
+                        </div>
+
+                        <% if (event.description) { %>
+                        <div class="movie-description mb-4">
+                            <h5>Description</h5>
+                            <p class="text-muted"><%= event.description %></p>
+                        </div>
+                        <% } %>
+
+                        <!-- Pricing Options -->
+                        <div class="pricing-options mb-4">
+                            <h5>Pricing Options</h5>
+                            <div class="pricing-list">
+                                <% if (event.pricing.standard) { %>
+                                <div class="pricing-item d-flex justify-content-between align-items-center p-2 mb-2 rounded">
+                                    <span>Standard</span>
+                                    <span class="fw-bold text-success">$<%= event.pricing.standard %></span>
+                                </div>
+                                <% } %>
+                                <% if (event.pricing.vip) { %>
+                                <div class="pricing-item d-flex justify-content-between align-items-center p-2 mb-2 rounded">
+                                    <span>VIP</span>
+                                    <span class="fw-bold text-success">$<%= event.pricing.vip %></span>
+                                </div>
+                                <% } %>
+                                <% if (event.pricing.student) { %>
+                                <div class="pricing-item d-flex justify-content-between align-items-center p-2 mb-2 rounded">
+                                    <span>Student</span>
+                                    <span class="fw-bold text-success">$<%= event.pricing.student %></span>
+                                </div>
+                                <% } %>
+                                <% if (event.pricing.senior) { %>
+                                <div class="pricing-item d-flex justify-content-between align-items-center p-2 mb-2 rounded">
+                                    <span>Senior</span>
+                                    <span class="fw-bold text-success">$<%= event.pricing.senior %></span>
+                                </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking Section -->
+            <div class="col-lg-8 col-md-7">
+                <div class="booking-section p-4">
+                    <!-- Date and Time Selection -->
+                    <div class="selection-section mb-4">
+                        <h4 class="mb-3">Select Date & Time</h4>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Date</label>
+                                <select class="form-select" id="dateSelect">
+                                    <option value="<%= new Date(event.date).toISOString().split('T')[0] %>">
+                                        <%= new Date(event.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %>
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Time</label>
+                                <select class="form-select" id="timeSelect">
+                                    <option value="<%= new Date(event.date).toTimeString().split(' ')[0] %>">
+                                        <%= new Date(event.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) %>
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Seat Selection -->
+                    <div class="seat-selection-section mb-4">
+                        <h4 class="mb-3">Select Your Seats</h4>
+                        <div class="theater-layout">
+                            <div class="screen-indicator text-center mb-4">
+                                <div class="screen-bar"></div>
+                                <p class="text-muted mt-2">SCREEN</p>
+                            </div>
+                            
+                            <div class="seating-chart" id="seatingChart">
+                                <!-- Seats will be generated here -->
+                            </div>
+                            
+                            <div class="seat-legend mt-4">
+                                <div class="legend-item d-flex align-items-center me-4">
+                                    <div class="seat-legend-seat available"></div>
+                                    <span class="ms-2">Available</span>
+                                </div>
+                                <div class="legend-item d-flex align-items-center me-4">
+                                    <div class="seat-legend-seat selected"></div>
+                                    <span class="ms-2">Selected</span>
+                                </div>
+                                <div class="legend-item d-flex align-items-center me-4">
+                                    <div class="seat-legend-seat occupied"></div>
+                                    <span class="ms-2">Occupied</span>
+                                </div>
+                                <div class="legend-item d-flex align-items-center">
+                                    <div class="seat-legend-seat vip"></div>
+                                    <span class="ms-2">VIP</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Booking Summary -->
+                    <div class="booking-summary">
+                        <div class="summary-card p-4 rounded-3 shadow">
+                            <h5 class="mb-3">Booking Summary</h5>
+                            <div class="summary-item d-flex justify-content-between mb-2">
+                                <span>Event:</span>
+                                <span><%= event.name %></span>
+                            </div>
+                            <div class="summary-item d-flex justify-content-between mb-2">
+                                <span>Date & Time:</span>
+                                <span id="selectedDateTime">
+                                    <%= new Date(event.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %> 
+                                    <%= new Date(event.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) %>
+                                </span>
+                            </div>
+                            <div class="summary-item d-flex justify-content-between mb-2">
+                                <span>Venue:</span>
+                                <span><%= event.location.name %></span>
+                            </div>
+                            <div class="summary-item d-flex justify-content-between mb-2">
+                                <span>Selected Seats:</span>
+                                <span id="selectedSeats">None</span>
+                            </div>
+                            <div class="summary-item d-flex justify-content-between mb-2">
+                                <span>Ticket Type:</span>
+                                <span id="ticketType">Standard</span>
+                            </div>
+                            <hr>
+                            <div class="summary-item d-flex justify-content-between mb-3">
+                                <span class="fw-bold">Total:</span>
+                                <span class="fw-bold text-success" id="totalPrice">$0.00</span>
+                            </div>
+                            
+                            <div class="booking-actions">
+                                <button class="btn btn-primary btn-lg w-100 mb-2" id="proceedToPayment" disabled>
+                                    <i class="fas fa-credit-card me-2"></i>Proceed to Payment
+                                </button>
+                                <button class="btn btn-outline-secondary w-100" onclick="window.history.back()">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to Events
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Seat selection functionality
+let selectedSeats = [];
+let ticketPrices = {
+    standard: <%= event.pricing.standard || event.pricing.basePrice %>,
+    vip: <%= event.pricing.vip || event.pricing.basePrice * 1.5 %>,
+    student: <%= event.pricing.student || event.pricing.basePrice * 0.8 %>,
+    senior: <%= event.pricing.senior || event.pricing.basePrice * 0.9 %>
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    generateSeatingChart();
+    updateBookingSummary();
+});
+
+function generateSeatingChart() {
+    const seatingChart = document.getElementById('seatingChart');
+    const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+    const seatsPerRow = 12;
+    
+    let chartHTML = '';
+    
+    rows.forEach(row => {
+        chartHTML += `<div class="seat-row d-flex justify-content-center mb-2">`;
+        
+        // Left side seats
+        for (let i = 1; i <= seatsPerRow / 2; i++) {
+            const seatId = `${row}${i}`;
+            const isVip = row === 'A' || row === 'B';
+            const isOccupied = Math.random() < 0.3; // 30% chance of being occupied
+            
+            chartHTML += `
+                <div class="seat ${isVip ? 'vip' : 'standard'} ${isOccupied ? 'occupied' : 'available'}" 
+                     data-seat="${seatId}" 
+                     data-row="${row}" 
+                     data-number="${i}"
+                     data-price="${isVip ? ticketPrices.vip : ticketPrices.standard}"
+                     onclick="selectSeat('${seatId}', ${isVip ? ticketPrices.vip : ticketPrices.standard})">
+                    ${i}
+                </div>
+            `;
+        }
+        
+        // Aisle
+        chartHTML += `<div class="aisle mx-2"></div>`;
+        
+        // Right side seats
+        for (let i = seatsPerRow / 2 + 1; i <= seatsPerRow; i++) {
+            const seatId = `${row}${i}`;
+            const isVip = row === 'A' || row === 'B';
+            const isOccupied = Math.random() < 0.3; // 30% chance of being occupied
+            
+            chartHTML += `
+                <div class="seat ${isVip ? 'vip' : 'standard'} ${isOccupied ? 'occupied' : 'available'}" 
+                     data-seat="${seatId}" 
+                     data-row="${row}" 
+                     data-number="${i}"
+                     data-price="${isVip ? ticketPrices.vip : ticketPrices.standard}"
+                     onclick="selectSeat('${seatId}', ${isVip ? ticketPrices.vip : ticketPrices.standard})">
+                    ${i}
+                </div>
+            `;
+        }
+        
+        chartHTML += `</div>`;
+    });
+    
+    seatingChart.innerHTML = chartHTML;
+}
+
+function selectSeat(seatId, price) {
+    const seatElement = document.querySelector(`[data-seat="${seatId}"]`);
+    
+    if (seatElement.classList.contains('occupied')) {
+        return; // Can't select occupied seats
+    }
+    
+    if (seatElement.classList.contains('selected')) {
+        // Deselect seat
+        seatElement.classList.remove('selected');
+        selectedSeats = selectedSeats.filter(seat => seat.id !== seatId);
+    } else {
+        // Select seat
+        seatElement.classList.add('selected');
+        selectedSeats.push({
+            id: seatId,
+            price: price,
+            type: seatElement.classList.contains('vip') ? 'VIP' : 'Standard'
+        });
+    }
+    
+    updateBookingSummary();
+}
+
+function updateBookingSummary() {
+    const selectedSeatsElement = document.getElementById('selectedSeats');
+    const totalPriceElement = document.getElementById('totalPrice');
+    const proceedButton = document.getElementById('proceedToPayment');
+    
+    if (selectedSeats.length === 0) {
+        selectedSeatsElement.textContent = 'None';
+        totalPriceElement.textContent = '$0.00';
+        proceedButton.disabled = true;
+    } else {
+        const seatList = selectedSeats.map(seat => seat.id).join(', ');
+        selectedSeatsElement.textContent = seatList;
+        
+        const total = selectedSeats.reduce((sum, seat) => sum + seat.price, 0);
+        totalPriceElement.textContent = `$${total.toFixed(2)}`;
+        proceedButton.disabled = false;
+    }
+}
+
+// Proceed to payment
+document.getElementById('proceedToPayment').addEventListener('click', function() {
+    if (selectedSeats.length === 0) {
+        alert('Please select at least one seat.');
+        return;
+    }
+    
+    // Store booking data in sessionStorage for payment page
+    const bookingData = {
+        eventId: '<%= event._id %>',
+        eventName: '<%= event.name %>',
+        date: document.getElementById('dateSelect').value,
+        time: document.getElementById('timeSelect').value,
+        venue: '<%= event.location.name %>',
+        seats: selectedSeats,
+        total: selectedSeats.reduce((sum, seat) => sum + seat.price, 0)
+    };
+    
+    sessionStorage.setItem('bookingData', JSON.stringify(bookingData));
+    
+    // Redirect to payment page (you'll need to create this)
+    window.location.href = '/payment';
+});
+</script>
+
+<style>
+.booking-page {
+    background: #f8f9fa;
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+.movie-info-section {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    height: fit-content;
+    position: sticky;
+    top: 2rem;
+}
+
+.movie-poster img {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+}
+
+.movie-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.meta-item {
+    font-size: 0.95rem;
+}
+
+.pricing-item {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+}
+
+.booking-section {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.screen-bar {
+    width: 200px;
+    height: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    margin: 0 auto;
+}
+
+.seating-chart {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.seat {
+    width: 35px;
+    height: 35px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 2px;
+}
+
+.seat.available {
+    background: #e9ecef;
+    color: #6c757d;
+    border: 2px solid #dee2e6;
+}
+
+.seat.available:hover {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.seat.selected {
+    background: #28a745;
+    color: white;
+    border: 2px solid #28a745;
+}
+
+.seat.occupied {
+    background: #dc3545;
+    color: white;
+    border: 2px solid #dc3545;
+    cursor: not-allowed;
+}
+
+.seat.vip {
+    background: #ffc107;
+    color: #212529;
+    border: 2px solid #ffc107;
+}
+
+.seat.vip.available:hover {
+    background: #e0a800;
+    border-color: #e0a800;
+}
+
+.aisle {
+    width: 20px;
+}
+
+.seat-legend {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.seat-legend-seat {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    margin-right: 8px;
+}
+
+.seat-legend-seat.available {
+    background: #e9ecef;
+    border: 1px solid #dee2e6;
+}
+
+.seat-legend-seat.selected {
+    background: #28a745;
+}
+
+.seat-legend-seat.occupied {
+    background: #dc3545;
+}
+
+.seat-legend-seat.vip {
+    background: #ffc107;
+}
+
+.summary-card {
+    background: white;
+    border: 1px solid #e9ecef;
+}
+
+.summary-item {
+    font-size: 0.95rem;
+}
+
+@media (max-width: 768px) {
+    .movie-info-section {
+        position: static;
+        margin-bottom: 2rem;
+    }
+    
+    .seat {
+        width: 30px;
+        height: 30px;
+        font-size: 0.7rem;
+    }
+    
+    .seating-chart {
+        max-width: 100%;
+    }
+}
+</style>
+
+<%- include('../partials/footer') %>

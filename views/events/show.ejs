@@ -1,0 +1,409 @@
+<%- include('../partials/header') %>
+
+<!-- Hero Section with Event Background -->
+<div class="event-hero position-relative" style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('<%= event.image || '/images/default-event.jpg' %>'); background-size: cover; background-position: center; min-height: 80vh;">
+    <div class="container position-relative" style="z-index: 2;">
+        <div class="row align-items-center min-vh-80">
+            <div class="col-lg-8">
+                <!-- Event Title and Details -->
+                <div class="event-info text-white">
+                    <h1 class="display-3 fw-bold mb-3"><%= event.name %></h1>
+                    
+                    <div class="event-meta mb-4">
+                        <div class="d-flex flex-wrap align-items-center gap-3">
+                            <span class="badge bg-<%= event.getCategoryColor ? event.getCategoryColor() : 'primary' %> fs-6">
+                                <i class="<%= event.getCategoryIcon ? event.getCategoryIcon() : 'fas fa-calendar' %> me-1"></i>
+                                <%= event.getCategoryDisplayName ? event.getCategoryDisplayName() : 'Event' %>
+                            </span>
+                            <span class="text-white-50">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                <%= new Date(event.date).toLocaleDateString('en-US', { 
+                                    weekday: 'long',
+                                    year: 'numeric', 
+                                    month: 'long', 
+                                    day: 'numeric' 
+                                }) %>
+                            </span>
+                            <span class="text-white-50">
+                                <i class="fas fa-clock me-1"></i>
+                                <%= new Date(event.date).toLocaleTimeString('en-US', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit' 
+                                }) %>
+                            </span>
+                            <span class="text-white-50">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                <%= event.location.name %>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Event Description -->
+                    <p class="lead mb-4"><%= event.description %></p>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-3 mb-4">
+                        <a href="#tickets" class="btn btn-primary btn-lg">
+                            <i class="fas fa-ticket-alt me-2"></i>Buy Tickets
+                        </a>
+                        <button class="btn btn-outline-light btn-lg" onclick="shareEvent()">
+                            <i class="fas fa-share-alt me-2"></i>Share
+                        </button>
+                        <% if (user) { %>
+                            <button class="btn btn-outline-light btn-lg" onclick="bookmarkEvent()">
+                                <i class="fas fa-bookmark me-2"></i>Save
+                            </button>
+                        <% } %>
+                    </div>
+
+                    <!-- Countdown Timer -->
+                    <div class="countdown-timer" data-event-date="<%= event.date %>">
+                        <h5 class="mb-3">Event Starts In:</h5>
+                        <div class="countdown-display">
+                            <!-- Countdown will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Event Details Section -->
+<div class="container my-5">
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Event Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Event Information
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Date & Time</h5>
+                            <p class="text-muted">
+                                <i class="fas fa-calendar me-2"></i>
+                                <%= new Date(event.date).toLocaleDateString('en-US', { 
+                                    weekday: 'long',
+                                    year: 'numeric', 
+                                    month: 'long', 
+                                    day: 'numeric' 
+                                }) %>
+                            </p>
+                            <p class="text-muted">
+                                <i class="fas fa-clock me-2"></i>
+                                <%= new Date(event.date).toLocaleTimeString('en-US', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit' 
+                                }) %>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Location</h5>
+                            <p class="text-muted">
+                                <i class="fas fa-map-marker-alt me-2"></i>
+                                <%= event.location.name %>
+                            </p>
+                            <p class="text-muted">
+                                <i class="fas fa-location-arrow me-2"></i>
+                                <%= event.location.address %>
+                            </p>
+                            <p class="text-muted">
+                                <i class="fas fa-users me-2"></i>
+                                Capacity: <%= event.location.capacity %> seats
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category-Specific Details -->
+            <% if (category === 'movies') { %>
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="mb-0">
+                            <i class="fas fa-film me-2"></i>Movie Details
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Director:</strong> <%= event.movieDetails.director %></p>
+                                <p><strong>Duration:</strong> <%= event.movieDetails.duration %> minutes</p>
+                                <p><strong>Rating:</strong> <span class="badge bg-warning"><%= event.movieDetails.rating %></span></p>
+                                <p><strong>Language:</strong> <%= event.movieDetails.language %></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Genre:</strong> <%= event.movieDetails.genre.join(', ') %></p>
+                                <p><strong>Release Year:</strong> <%= event.movieDetails.releaseYear %></p>
+                                <% if (event.movieDetails.imdbRating) { %>
+                                    <p><strong>IMDB Rating:</strong> ⭐ <%= event.movieDetails.imdbRating %></p>
+                                <% } %>
+                            </div>
+                        </div>
+                        <h5 class="mt-3">Cast</h5>
+                        <p><%= event.movieDetails.cast.join(', ') %></p>
+                    </div>
+                </div>
+            <% } else if (category === 'stage-plays') { %>
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="mb-0">
+                            <i class="fas fa-theater-masks me-2"></i>Stage Play Details
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Playwright:</strong> <%= event.stagePlayDetails.playwright %></p>
+                                <p><strong>Duration:</strong> <%= event.stagePlayDetails.duration %> minutes</p>
+                                <p><strong>Age Restriction:</strong> <%= event.stagePlayDetails.ageRestriction %></p>
+                                <p><strong>Language:</strong> <%= event.stagePlayDetails.language %></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Genre:</strong> <%= event.stagePlayDetails.genre.join(', ') %></p>
+                                <p><strong>Intermission:</strong> <%= event.stagePlayDetails.intermission ? 'Yes' : 'No' %></p>
+                                <% if (event.stagePlayDetails.intermission) { %>
+                                    <p><strong>Intermission Duration:</strong> <%= event.stagePlayDetails.intermissionDuration %> minutes</p>
+                                <% } %>
+                            </div>
+                        </div>
+                        <h5 class="mt-3">Cast</h5>
+                        <div class="row">
+                            <% event.stagePlayDetails.cast.forEach(castMember => { %>
+                                <div class="col-md-6 mb-2">
+                                    <strong><%= castMember.name %></strong> - <%= castMember.role %>
+                                </div>
+                            <% }) %>
+                        </div>
+                    </div>
+                </div>
+            <% } else if (category === 'orchestra') { %>
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="mb-0">
+                            <i class="fas fa-music me-2"></i>Orchestra Details
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Conductor:</strong> <%= event.orchestraDetails.conductor %></p>
+                                <p><strong>Orchestra:</strong> <%= event.orchestraDetails.orchestra %></p>
+                                <p><strong>Duration:</strong> <%= event.orchestraDetails.duration %> minutes</p>
+                                <p><strong>Dress Code:</strong> <%= event.orchestraDetails.dressCode %></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Season:</strong> <%= event.orchestraDetails.season %></p>
+                                <p><strong>Intermission:</strong> <%= event.orchestraDetails.intermission ? 'Yes' : 'No' %></p>
+                                <% if (event.orchestraDetails.intermission) { %>
+                                    <p><strong>Intermission Duration:</strong> <%= event.orchestraDetails.intermissionDuration %> minutes</p>
+                                <% } %>
+                            </div>
+                        </div>
+                        <h5 class="mt-3">Program</h5>
+                        <p><%= event.orchestraDetails.program %></p>
+                        <h5 class="mt-3">Repertoire</h5>
+                        <% event.orchestraDetails.repertoire.forEach(piece => { %>
+                            <div class="mb-2">
+                                <strong><%= piece.composer %></strong> - <%= piece.piece %>
+                                <% if (piece.movement) { %>
+                                    <br><small class="text-muted"><%= piece.movement %></small>
+                                <% } %>
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+            <% } %>
+
+            <!-- Showtimes/Performances -->
+            <% if (event.showtimes || event.performances) { %>
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="mb-0">
+                            <i class="fas fa-clock me-2"></i>
+                            <% if (category === 'movies') { %>Showtimes<% } else { %>Performances<% } %>
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <% if (event.showtimes) { %>
+                            <div class="row">
+                                <% event.showtimes.forEach(showtime => { %>
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card border-primary">
+                                            <div class="card-body text-center">
+                                                <h5><%= showtime.time %></h5>
+                                                <p class="text-muted">
+                                                    <%= showtime.availableSeats %> / <%= showtime.totalSeats %> seats available
+                                                </p>
+                                                <% if (showtime.availableSeats > 0) { %>
+                                                    <button class="btn btn-primary btn-sm">Select</button>
+                                                <% } else { %>
+                                                    <button class="btn btn-secondary btn-sm" disabled>Sold Out</button>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% }) %>
+                            </div>
+                        <% } else if (event.performances) { %>
+                            <div class="row">
+                                <% event.performances.forEach(performance => { %>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card border-primary">
+                                            <div class="card-body">
+                                                <h5>
+                                                    <%= new Date(performance.date).toLocaleDateString('en-US', { 
+                                                        month: 'short', 
+                                                        day: 'numeric' 
+                                                    }) %>
+                                                    at <%= performance.time %>
+                                                </h5>
+                                                <p class="text-muted">
+                                                    <%= performance.availableSeats %> / <%= performance.totalSeats %> seats available
+                                                </p>
+                                                <% if (performance.availableSeats > 0) { %>
+                                                    <button class="btn btn-primary btn-sm">Select</button>
+                                                <% } else { %>
+                                                    <button class="btn btn-secondary btn-sm" disabled>Sold Out</button>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% }) %>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Ticket Pricing -->
+            <div class="card mb-4" id="tickets">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fas fa-ticket-alt me-2"></i>Ticket Pricing
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="pricing-item mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Regular</span>
+                            <strong>$<%= event.pricing.basePrice %></strong>
+                        </div>
+                    </div>
+                    <% if (event.pricing.vipPrice) { %>
+                        <div class="pricing-item mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>VIP</span>
+                                <strong>$<%= event.pricing.vipPrice %></strong>
+                            </div>
+                        </div>
+                    <% } %>
+                    <% if (event.pricing.studentPrice) { %>
+                        <div class="pricing-item mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Student</span>
+                                <strong>$<%= event.pricing.studentPrice %></strong>
+                            </div>
+                        </div>
+                    <% } %>
+                    <% if (event.pricing.seniorPrice) { %>
+                        <div class="pricing-item mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Senior</span>
+                                <strong>$<%= event.pricing.seniorPrice %></strong>
+                            </div>
+                        </div>
+                    <% } %>
+                    <hr>
+                    <a href="#" class="btn btn-primary w-100">
+                        <i class="fas fa-shopping-cart me-2"></i>Buy Tickets Now
+                    </a>
+                </div>
+            </div>
+
+            <!-- Organizer Info -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fas fa-building me-2"></i>Organizer
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <h5><%= event.organizer.name %></h5>
+                    <% if (event.organizer.organizerProfile) { %>
+                        <p class="text-muted"><%= event.organizer.organizerProfile.companyName %></p>
+                        <% if (event.organizer.organizerProfile.description) { %>
+                            <p><%= event.organizer.organizerProfile.description %></p>
+                        <% } %>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- Related Events -->
+            <% if (relatedEvents.length > 0) { %>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="mb-0">
+                            <i class="fas fa-star me-2"></i>Related Events
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <% relatedEvents.forEach(relatedEvent => { %>
+                            <div class="d-flex mb-3">
+                                <img src="<%= relatedEvent.image || '/images/default-event.jpg' %>" 
+                                     class="rounded me-3" 
+                                     style="width: 60px; height: 60px; object-fit: cover;" 
+                                     alt="<%= relatedEvent.name %>">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">
+                                        <a href="/events/<%= relatedEvent._id %>" class="text-decoration-none">
+                                            <%= relatedEvent.name %>
+                                        </a>
+                                    </h6>
+                                    <small class="text-muted">
+                                        <%= new Date(relatedEvent.date).toLocaleDateString('en-US', { 
+                                            month: 'short', 
+                                            day: 'numeric' 
+                                        }) %>
+                                    </small>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<script>
+function shareEvent() {
+    if (navigator.share) {
+        navigator.share({
+            title: '<%= event.name %>',
+            text: '<%= event.description.substring(0, 100) %>...',
+            url: window.location.href
+        });
+    } else {
+        // Fallback: copy to clipboard
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            alert('Event link copied to clipboard!');
+        });
+    }
+}
+
+function bookmarkEvent() {
+    // TODO: Implement bookmark functionality
+    alert('Bookmark functionality coming soon!');
+}
+</script>
+
+<%- include('../partials/footer') %>
