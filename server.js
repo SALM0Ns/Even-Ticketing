@@ -22,7 +22,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Session configuration
 app.use(session({
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.SESSION_SECRET || 'cursed-ticket-super-secret-key-2024',
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({

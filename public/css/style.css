@@ -1221,6 +1221,51 @@ section {
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
 }
 
+/* Event Detail Page - Hero Section with Poster Background */
+.event-hero {
+    position: relative;
+    overflow: hidden;
+}
+
+.event-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(0, 0, 0, 0.8) 0%,
+        rgba(0, 0, 0, 0.6) 50%,
+        rgba(0, 0, 0, 0.7) 100%
+    );
+    z-index: 1;
+}
+
+.event-hero .container {
+    position: relative;
+    z-index: 2;
+}
+
+.event-info h1 {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    font-weight: 700;
+}
+
+.event-info .lead {
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+    font-weight: 400;
+}
+
+.event-meta .badge {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.event-meta .text-white-50 {
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+}
+
 /* Event Cards - Removed old styles to prevent conflicts with poster layout */
 
 /* Seat Selection System */
@@ -1228,21 +1273,75 @@ section {
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
 }
 
+/* Seat Selection Headers - High Contrast */
+#seat-selection h2 {
+    color: #2c3e50 !important;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+#seat-selection .card-header h5 {
+    color: #2c3e50 !important;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+#seat-selection .card-header {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-bottom: 2px solid #e9ecef;
+}
+
+/* Icon colors for better visibility */
+#seat-selection h2 i,
+#seat-selection .card-header h5 i {
+    color: #007bff !important;
+    text-shadow: 0 1px 2px rgba(0, 123, 255, 0.2);
+}
+
 .show-date-card {
     cursor: pointer;
-    transition: all 0.2s ease;
-    border: 1px solid #dee2e6;
-    border-radius: 6px;
+    transition: all 0.3s ease;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .show-date-card:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-color: #007bff;
 }
 
 .show-date-card.border-primary {
-    border-color: #495057 !important;
-    background-color: #f8f9fa;
+    border-color: #007bff !important;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+/* Date and time text styling for better contrast */
+.date-text {
+    color: #2c3e50;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.time-text {
+    color: #6c757d;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* Selected state text colors */
+.show-date-card.border-primary .date-text {
+    color: #ffffff !important;
+}
+
+.show-date-card.border-primary .time-text {
+    color: #e3f2fd !important;
 }
 
 .seat-legend {
@@ -1256,7 +1355,8 @@ section {
     align-items: center;
     gap: 0.4rem;
     font-size: 0.8rem;
-    color: #6c757d;
+    color: #2c3e50;
+    font-weight: 500;
 }
 
 .seat-legend-available,
@@ -2509,6 +2609,18 @@ section {
 /* Countdown Timer Styles */
 .countdown-timer {
     margin: 2rem 0;
+}
+
+/* Countdown Timer on Event Detail Page */
+.event-hero .countdown-timer {
+    margin: 3rem 0 2rem 0;
+}
+
+.event-hero .countdown-card {
+    background: rgba(0, 0, 0, 0.8) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
 .countdown-card {

@@ -1,7 +1,7 @@
 <%- include('../partials/header') %>
 
 <!-- Hero Section with Event Background -->
-<div class="event-hero position-relative" style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('<%= event.wallpaper || event.image || '/images/default-event.jpg' %>'); background-size: cover; background-position: center; min-height: 80vh;">
+<div class="event-hero position-relative" style="background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.5)), url('<%= event.poster || event.wallpaper || event.image || '/images/default-event.jpg' %>'); background-size: cover; background-position: center; min-height: 80vh;">
     <div class="container position-relative" style="z-index: 2;">
         <div class="row align-items-center min-vh-80">
             <div class="col-lg-8">
@@ -547,15 +547,32 @@ function loadShowDates() {
     const container = document.getElementById('show-dates-container');
     container.innerHTML = '';
     
-    eventData.showDates.forEach((date, index) => {
-        const showDate = new Date(date);
+    eventData.showDates.forEach((dateObj, index) => {
+        // Handle both object format {date: Date} and direct Date format
+        const dateValue = dateObj.date || dateObj;
+        const showDate = new Date(dateValue);
+        
+        // Validate date
+        if (isNaN(showDate.getTime())) {
+            console.error('Invalid date:', dateValue);
+            return;
+        }
+        
         const dateCard = document.createElement('div');
         dateCard.className = 'col-md-4 mb-2';
         dateCard.innerHTML = `
-            <div class="card show-date-card" onclick="selectShowDate('${date}', ${index})">
+            <div class="card show-date-card" onclick="selectShowDate('${dateValue}', ${index})">
                 <div class="card-body text-center p-2">
-                    <div class="fw-bold">${showDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
-                    <small class="text-muted">${showDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</small>
+                    <div class="fw-bold date-text">${showDate.toLocaleDateString('en-US', { 
+                        weekday: 'short', 
+                        month: 'short', 
+                        day: 'numeric' 
+                    })}</div>
+                    <small class="time-text">${showDate.toLocaleTimeString('en-US', { 
+                        hour: '2-digit', 
+                        minute: '2-digit',
+                        hour12: true 
+                    })}</small>
                 </div>
             </div>
         `;
@@ -564,7 +581,8 @@ function loadShowDates() {
     
     // Select first date by default
     if (eventData.showDates.length > 0) {
-        selectShowDate(eventData.showDates[0], 0);
+        const firstDate = eventData.showDates[0].date || eventData.showDates[0];
+        selectShowDate(firstDate, 0);
     }
 }
 
