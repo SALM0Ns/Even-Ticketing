@@ -48,6 +48,8 @@ app.use((req, res, next) => {
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
   res.locals.info = req.flash('info');
+  res.locals.title = res.locals.title || 'CursedTicket';
+  res.locals.description = res.locals.description || 'CursedTicket Event System';
   next();
 });
 
@@ -206,13 +208,22 @@ app.get('/api/events/starting-soon', async (req, res) => {
 
 // Import routes
 const eventRoutes = require('./routes/events');
+const ticketRoutes = require('./routes/tickets');
+const ticketRoutesNew = require('./routes/ticketRoutes');
 // const authRoutes = require('./routes/auth');
 // const userRoutes = require('./routes/users');
 
 // Use routes
 app.use('/events', eventRoutes);
+app.use('/tickets', ticketRoutes);
+app.use('/tickets', ticketRoutesNew);
 // app.use('/auth', authRoutes);
 // app.use('/users', userRoutes);
+
+// Redirect old my-tickets route to new tickets route
+app.get('/my-tickets', (req, res) => {
+  res.redirect('/tickets/my-tickets');
+});
 
 // 404 handler
 app.use((req, res) => {
@@ -228,7 +239,8 @@ app.use((err, req, res, next) => {
   res.status(500).render('500', { 
     title: 'Server Error',
     user: req.session.user,
-    error: process.env.NODE_ENV === 'development' ? err : {}
+    message: 'Something went wrong on our end. Please try again later.',
+    error: process.env.NODE_ENV === 'development' ? err?.message || 'Unknown error' : undefined
   });
 });
 
