@@ -34,7 +34,7 @@ async function verifySeparateImages() {
     }
 
     // Verify Stage Plays
-    console.log('🎭 Stage Plays:');
+    console.log(' Stage Plays:');
     const stagePlays = await StagePlays.find();
     for (const play of stagePlays) {
       console.log(`  ✅ ${play.name}:`);

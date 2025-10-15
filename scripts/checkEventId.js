@@ -35,12 +35,12 @@ async function checkEventId() {
       console.log('   ❌ Not found in Movies');
     }
 
-    console.log('\n🎭 Checking Stage Plays...');
+    console.log('\nChecking Stage Plays...');
     const stagePlay = await StagePlays.findById(targetId);
     if (stagePlay) {
       console.log(`   ✅ Found in Stage Plays: ${stagePlay.name}`);
       console.log(`   📅 Date: ${stagePlay.date}`);
-      console.log(`   🎭 Category: Stage Play`);
+      console.log(`    Category: Stage Play`);
       return;
     } else {
       console.log('   ❌ Not found in Stage Plays');
@@ -66,7 +66,7 @@ async function checkEventId() {
       console.log(`   ${movie._id} - ${movie.name}`);
     });
 
-    console.log('\n🎭 Stage Plays:');
+    console.log('\n Stage Plays:');
     const stagePlays = await StagePlays.find({}, '_id name');
     stagePlays.forEach(play => {
       console.log(`   ${play._id} - ${play.name}`);

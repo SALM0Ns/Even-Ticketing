@@ -50,7 +50,7 @@ async function importDatabase() {
       console.log(`✅ Imported ${importData.movies.length} movies`);
     }
 
-    console.log('\n🎭 Importing stage plays...');
+    console.log('\nImporting stage plays...');
     await StagePlays.deleteMany({});
     if (importData.stagePlays && importData.stagePlays.length > 0) {
       await StagePlays.insertMany(importData.stagePlays);

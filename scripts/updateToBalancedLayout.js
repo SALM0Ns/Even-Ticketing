@@ -53,7 +53,7 @@ function generateShowDates(baseDate) {
 
 async function updateToBalancedLayout() {
   try {
-    console.log('🎭 Updating to balanced cinema layout (18 seats per row)...\n');
+    console.log(' Updating to balanced cinema layout (18 seats per row)...\n');
 
     // Update Movies
     console.log('📽️  Updating Movies...');
@@ -76,7 +76,7 @@ async function updateToBalancedLayout() {
     }
 
     // Update Stage Plays
-    console.log('\n🎭 Updating Stage Plays...');
+    console.log('\n Updating Stage Plays...');
     const stagePlays = await StagePlays.find();
     for (const play of stagePlays) {
       const showDates = generateShowDates(play.date);

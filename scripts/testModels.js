@@ -33,7 +33,7 @@ async function testModels() {
       console.log(`   Wallpaper: ${sampleMovie.wallpaper ? 'Available' : 'Missing'}`);
     }
 
-    console.log('\n🎭 Testing StagePlays model...');
+    console.log('\n Testing StagePlays model...');
     const playCount = await StagePlays.countDocuments();
     console.log(`   Found ${playCount} stage plays`);
     

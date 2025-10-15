@@ -47,7 +47,7 @@ async function updateSeparateImageFields() {
     }
 
     // Update Stage Plays
-    console.log('\n🎭 Updating Stage Plays...');
+    console.log('\n Updating Stage Plays...');
     const stagePlays = await StagePlays.find();
     for (const play of stagePlays) {
       const posterPath = play.image.replace('-wallpaper', '-poster').replace('wallpaper', 'poster');

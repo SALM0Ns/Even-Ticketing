@@ -52,7 +52,7 @@ async function updateEventDates() {
     }
 
     // Update Stage Plays
-    console.log('\n🎭 Updating Stage Play dates...');
+    console.log('\nUpdating Stage Play dates...');
     const stagePlays = await StagePlays.find({});
     for (const play of stagePlays) {
       // Random date between 1-2 weeks from now

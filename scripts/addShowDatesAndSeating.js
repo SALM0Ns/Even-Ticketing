@@ -53,7 +53,7 @@ function generateShowDates(baseDate) {
 
 async function addShowDatesAndSeating() {
   try {
-    console.log('🎭 Adding show dates and seating data to all events...\n');
+    console.log(' Adding show dates and seating data to all events...\n');
 
     // Update Movies
     console.log('📽️  Updating Movies...');
@@ -80,7 +80,7 @@ async function addShowDatesAndSeating() {
     }
 
     // Update Stage Plays
-    console.log('\n🎭 Updating Stage Plays...');
+    console.log('\n Updating Stage Plays...');
     const stagePlays = await StagePlays.find();
     for (const play of stagePlays) {
       const showDates = generateShowDates(play.date);

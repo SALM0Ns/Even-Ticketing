@@ -26,7 +26,7 @@ async function testHomepageLogic() {
     const featuredMovies = await Movie.find().sort({ date: 1 }).limit(3);
     console.log(`   Found ${featuredMovies.length} featured movies`);
     
-    console.log('\n🎭 Fetching featured stage plays...');
+    console.log('\nFetching featured stage plays...');
     const featuredPlays = await StagePlays.find().sort({ date: 1 }).limit(3);
     console.log(`   Found ${featuredPlays.length} featured stage plays`);
     

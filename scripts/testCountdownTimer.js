@@ -38,7 +38,7 @@ async function testCountdownData() {
       console.log('');
     });
 
-    console.log('🎭 Testing Stage Play dates...');
+    console.log(' Testing Stage Play dates...');
     const stagePlays = await StagePlays.find({});
     
     stagePlays.forEach(play => {

@@ -37,7 +37,7 @@ async function updateEventDates() {
     }
 
     // Update Stage Plays - set dates 2-5 weeks in the future
-    console.log('\n🎭 Updating Stage Play dates...');
+    console.log('\n Updating Stage Play dates...');
     const stagePlays = await StagePlays.find({});
     for (let i = 0; i < stagePlays.length; i++) {
       const play = stagePlays[i];
@@ -62,9 +62,9 @@ async function updateEventDates() {
 
     console.log('\n🎉 Event dates updated successfully!');
     console.log('\n⏰ Countdown Timer will now show:');
-    console.log('   📽️  Movies: 1-4 weeks countdown');
-    console.log('   🎭 Stage Plays: 2-5 weeks countdown');
-    console.log('   🎼 Orchestra: 3-6 weeks countdown');
+    console.log('     Movies: 1-4 weeks countdown');
+    console.log('    Stage Plays: 2-5 weeks countdown');
+    console.log('    Orchestra: 3-6 weeks countdown');
     console.log('\n💡 Visit any event detail page to see the countdown timer in action!');
     
   } catch (error) {

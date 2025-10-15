@@ -53,7 +53,7 @@ async function addShowDates() {
       console.log(`   ✅ ${movie.name}: Added ${showDates.length} show dates`);
     }
 
-    console.log('\n🎭 Adding show dates to Stage Plays...');
+    console.log('\n Adding show dates to Stage Plays...');
     const stagePlays = await StagePlays.find({});
     for (const play of stagePlays) {
       await StagePlays.findByIdAndUpdate(play._id, { showDates: showDates });

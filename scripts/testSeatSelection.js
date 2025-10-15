@@ -13,7 +13,7 @@ mongoose.connect(process.env.MONGODB_URI, {
 
 async function testSeatSelection() {
   try {
-    console.log('🎭 Testing seat selection data...\n');
+    console.log(' Testing seat selection data...\n');
 
     // Get a movie to test
     const movie = await Movie.findOne();

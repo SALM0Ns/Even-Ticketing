@@ -43,7 +43,7 @@ async function verifyCloudinaryIntegration() {
     }
 
     // Verify Stage Plays
-    console.log('🎭 Stage Plays:');
+    console.log(' Stage Plays:');
     const stagePlays = await StagePlays.find();
     for (const play of stagePlays) {
       const usingCloudinary = play.poster && play.poster.includes('cloudinary.com');

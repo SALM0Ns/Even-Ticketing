@@ -31,10 +31,10 @@ async function checkLocations() {
       console.log('');
     });
 
-    console.log('🎭 Stage Play Locations:');
+    console.log(' Stage Play Locations:');
     const stagePlays = await StagePlays.find({}, '_id name location venue');
     stagePlays.forEach(play => {
-      console.log(`   🎭 ${play.name}:`);
+      console.log(`    ${play.name}:`);
       console.log(`      📍 Location: ${play.location || 'Not set'}`);
       console.log(`      🏢 Venue: ${play.venue || 'Not set'}`);
       console.log('');

@@ -51,7 +51,7 @@ async function updateWallpaperImages() {
     }
 
     // Update Stage Plays
-    console.log('\n🎭 Updating Stage Plays...');
+    console.log('\n Updating Stage Plays...');
     const stagePlays = await StagePlays.find();
     for (const play of stagePlays) {
       let wallpaperPath = '';

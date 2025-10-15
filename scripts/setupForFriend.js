@@ -93,7 +93,7 @@ async function setupDatabase() {
     await Movie.insertMany(movies);
     console.log(`✅ Created ${movies.length} movies`);
 
-    console.log('\n🎭 Creating sample stage plays...');
+    console.log('\n Creating sample stage plays...');
     
     const stagePlays = [
       {

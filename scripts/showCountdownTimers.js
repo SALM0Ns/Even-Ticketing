@@ -64,13 +64,13 @@ async function showCountdownTimers() {
       console.log('');
     });
 
-    console.log('🎭 Stage Play Countdown Timers:');
+    console.log(' Stage Play Countdown Timers:');
     const stagePlays = await StagePlays.find({}, '_id name date');
     stagePlays.forEach(play => {
       const countdown = calculateCountdown(play.date);
       const eventDate = new Date(play.date);
       
-      console.log(`   🎭 ${play.name}:`);
+      console.log(`    ${play.name}:`);
       console.log(`      📅 Event Date: ${eventDate.toLocaleDateString('en-US', { 
         weekday: 'long', 
         year: 'numeric', 

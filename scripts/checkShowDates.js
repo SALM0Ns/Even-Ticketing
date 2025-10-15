@@ -38,7 +38,7 @@ async function checkShowDates() {
       console.log('');
     });
 
-    console.log('🎭 Stage Plays Show Dates:');
+    console.log(' Stage Plays Show Dates:');
     const stagePlays = await StagePlays.find({}, '_id name showDates');
     stagePlays.forEach(play => {
       console.log(`   ${play.name}:`);

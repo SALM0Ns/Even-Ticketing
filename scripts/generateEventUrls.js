@@ -30,7 +30,7 @@ async function generateUrls() {
       console.log('');
     });
 
-    console.log('🎭 Stage Play URLs:');
+    console.log(' Stage Play URLs:');
     const stagePlays = await StagePlays.find({}, '_id name');
     stagePlays.forEach(play => {
       console.log(`   ${play.name}:`);

@@ -40,7 +40,7 @@ async function updateCorrectPosterPaths() {
     }
 
     // Update Stage Plays with correct poster paths
-    console.log('\n🎭 Updating Stage Plays...');
+    console.log('\n Updating Stage Plays...');
     const stagePlayUpdates = [
       { name: 'The Phantom of the Opera', poster: '/images/phantom-poster.jpg' },
       { name: 'Hamilton', poster: '/images/hamilton-poster.jpg' },

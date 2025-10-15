@@ -38,7 +38,7 @@ async function verifyDatabaseSave() {
     }
 
     // Verify Stage Plays
-    console.log('🎭 Verifying Stage Plays...');
+    console.log(' Verifying Stage Plays...');
     const stagePlays = await StagePlays.find();
     for (const play of stagePlays) {
       console.log(`  ✅ ${play.name}:`);

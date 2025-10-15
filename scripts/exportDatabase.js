@@ -30,7 +30,7 @@ async function exportDatabase() {
     const movies = await Movie.find({});
     console.log(`✅ Exported ${movies.length} movies`);
 
-    console.log('🎭 Exporting stage plays...');
+    console.log(' Exporting stage plays...');
     const stagePlays = await StagePlays.find({});
     console.log(`✅ Exported ${stagePlays.length} stage plays`);
 

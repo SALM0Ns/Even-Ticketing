@@ -79,7 +79,7 @@ async function updateDatabaseWithCloudinary() {
     }
 
     // Update Stage Plays
-    console.log('\n🎭 Updating Stage Plays...');
+    console.log('\n Updating Stage Plays...');
     const stagePlayUpdates = [
       { name: 'The Phantom of the Opera', images: eventImages['Phantom of the Opera'] },
       { name: 'Hamilton', images: eventImages['Hamilton'] },

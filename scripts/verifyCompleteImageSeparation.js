@@ -42,7 +42,7 @@ async function verifyCompleteImageSeparation() {
     }
 
     // Verify Stage Plays
-    console.log('🎭 Stage Plays:');
+    console.log('Stage Plays:');
     const stagePlays = await StagePlays.find();
     for (const play of stagePlays) {
       const posterCorrect = play.poster.includes('poster') && !play.poster.includes('wallpaper');

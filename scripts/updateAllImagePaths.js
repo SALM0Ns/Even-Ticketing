@@ -48,7 +48,7 @@ async function updateAllImagePaths() {
     }
 
     // Update Stage Plays with correct paths
-    console.log('\n🎭 Updating Stage Plays...');
+    console.log('\n Updating Stage Plays...');
     const stagePlayUpdates = [
       { name: 'The Phantom of the Opera', poster: '/images/phantom-poster.jpg', wallpaper: '/images/phantom-wallpaper.png' },
       { name: 'Hamilton', poster: '/images/hamilton-poster.jpg', wallpaper: '/images/hamilton-wallpaper.png' },

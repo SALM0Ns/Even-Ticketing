@@ -38,11 +38,11 @@ async function getCurrentUrls() {
       console.log('');
     });
 
-    console.log('🎭 Stage Play URLs (Updated):');
+    console.log(' Stage Play URLs (Updated):');
     const stagePlays = await StagePlays.find({}, '_id name date');
     stagePlays.forEach(play => {
       const eventDate = new Date(play.date);
-      console.log(`   🎭 ${play.name}:`);
+      console.log(`   ${play.name}:`);
       console.log(`      📅 ${eventDate.toLocaleDateString('en-US', { 
         weekday: 'short', 
         month: 'short', 

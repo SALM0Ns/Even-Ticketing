@@ -81,7 +81,7 @@ async function fixSeatSelectionData() {
     }
 
     // Update Stage Plays
-    console.log('\n🎭 Updating Stage Plays...');
+    console.log('\n Updating Stage Plays...');
     const stagePlays = await StagePlays.find();
     for (const play of stagePlays) {
       const showDates = generateShowDates(play.date);
