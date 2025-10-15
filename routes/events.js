@@ -70,7 +70,8 @@ router.get('/', async (req, res) => {
     console.error('Error fetching events:', error);
     res.status(500).render('500', { 
       title: 'Server Error',
-      error: 'Failed to load events'
+      message: 'Failed to load events',
+      error: error?.message || 'Unknown error'
     });
   }
 });
@@ -155,7 +156,8 @@ router.get('/:category/:id', async (req, res) => {
     console.error('Error fetching event:', error);
     res.status(500).render('500', { 
       title: 'Server Error',
-      error: 'Failed to load event details'
+      message: 'Failed to load event details',
+      error: error?.message || 'Unknown error'
     });
   }
 });
@@ -211,7 +213,8 @@ router.get('/:id', async (req, res) => {
     console.error('Error fetching event:', error);
     res.status(500).render('500', { 
       title: 'Server Error',
-      error: 'Failed to load event details'
+      message: 'Failed to load event details',
+      error: error?.message || 'Unknown error'
     });
   }
 });

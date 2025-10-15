@@ -46,6 +46,9 @@
                         <a href="#tickets" class="btn btn-primary btn-lg">
                             <i class="fas fa-ticket-alt me-2"></i>Buy Tickets
                         </a>
+                        <button class="btn btn-success btn-lg" onclick="testPurchaseTicket()">
+                            <i class="fas fa-qrcode me-2"></i>Test QR Purchase
+                        </button>
                         <button class="btn btn-outline-light btn-lg" onclick="shareEvent()">
                             <i class="fas fa-share-alt me-2"></i>Share
                         </button>
@@ -1154,20 +1157,44 @@ function updateSelectedSeatsSummary() {
 }
 
 function proceedToCheckout() {
-    if (selectedSeats.length === 0) {
-        alert('Please select at least one seat.');
-        return;
-    }
-    
-    if (!selectedShowDate) {
-        alert('Please select a show date.');
-        return;
-    }
-    
-    // For now, just show an alert with the selection
-    // Later this will redirect to a checkout page
-    const showDate = new Date(selectedShowDate);
-    alert(`Selected ${selectedSeats.length} seat(s) for ${showDate.toLocaleDateString()} at ${showDate.toLocaleTimeString()}\nTotal: $${(selectedSeats.length * eventData.pricing.basePrice).toFixed(2)}\n\nCheckout system will be implemented later.`);
+  if (selectedSeats.length === 0) {
+    alert('Please select at least one seat.');
+    return;
+  }
+
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '/tickets/create';
+
+  // Event ID และ user ID (mock หรือดึงจาก session)
+  const eventIdInput = document.createElement('input');
+  eventIdInput.type = 'hidden';
+  eventIdInput.name = 'eventId';
+  eventIdInput.value = '<%= event._id %>';
+  form.appendChild(eventIdInput);
+
+  const userIdInput = document.createElement('input');
+  userIdInput.type = 'hidden';
+  userIdInput.name = 'userId';
+  userIdInput.value = '<%= user ? user._id : "6719c4f99999999999999999" %>'; // mock user
+  form.appendChild(userIdInput);
+
+  const priceInput = document.createElement('input');
+  priceInput.type = 'hidden';
+  priceInput.name = 'price';
+  priceInput.value = eventData.pricing.basePrice;
+  form.appendChild(priceInput);
+
+  selectedSeats.forEach(seat => {
+    const seatInput = document.createElement('input');
+    seatInput.type = 'hidden';
+    seatInput.name = 'seats[]';
+    seatInput.value = seat;
+    form.appendChild(seatInput);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
 }
 
 function bookmarkEvent() {
@@ -1175,6 +1202,17 @@ function bookmarkEvent() {
     alert('Bookmark functionality coming soon!');
 }
 
+// Test purchase function for QR code system
+function testPurchaseTicket() {
+    const eventId = '<%= event._id %>';
+    const eventType = '<%= category %>';
+    const seatNumber = 'A-1'; // Mock seat
+    const price = <%= event.pricing.basePrice %>;
+    
+    if (confirm(`Purchase ticket for ${eventType}?\nSeat: ${seatNumber}\nPrice: $${price}`)) {
+        EventTicketing.purchaseTicket(eventId, eventType, seatNumber, price);
+    }
+}
 // Countdown Timer Functionality
 function initializeCountdownTimer() {
     const countdownTimer = document.querySelector('.countdown-timer');

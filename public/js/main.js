@@ -91,6 +91,7 @@ function loadFeaturedEvents() {
         .then(response => response.json())
         .then(data => {
             const container = document.getElementById('featured-events');
+            if (!container) return; // ป้องกัน error innerHTML ของ null
             if (data.events && data.events.length > 0) {
                 container.innerHTML = data.events.map(event => createEventCard(event)).join('');
             } else {
@@ -100,6 +101,7 @@ function loadFeaturedEvents() {
         .catch(error => {
             console.error('Error loading featured events:', error);
             const container = document.getElementById('featured-events');
+            if (!container) return; // ป้องกัน error innerHTML ของ null
             container.innerHTML = '<div class="col-12 text-center"><p class="text-danger">Error loading events. Please try again later.</p></div>';
         });
 }
@@ -135,10 +137,15 @@ function createEventCard(event) {
     const color = categoryColors[event.category] || 'secondary';
     const categoryName = categoryDisplayNames[event.category] || event.category;
     
+    // ✅ รองรับภาพจาก URL และ fallback เป็น placeholder
+    const imageSrc = event.image && event.image.startsWith('http')
+        ? event.image
+        : 'https://via.placeholder.com/600x300?text=Event+Image';
+    
     return `
         <div class="col-md-4 mb-4">
             <div class="card event-card h-100 category-${event.category}">
-                <img src="${event.image || '/images/default-event.jpg'}" class="card-img-top" alt="${event.name}">
+                <img src="${imageSrc}" class="card-img-top" alt="${event.name}">
                 <div class="category-badge ${event.category}">
                     <i class="${icon} me-1"></i>${categoryName}
                 </div>
@@ -169,10 +176,16 @@ function loadStatistics() {
     fetch('/api/statistics')
         .then(response => response.json())
         .then(data => {
-            document.getElementById('total-events').textContent = data.totalEvents || 0;
-            document.getElementById('total-tickets').textContent = data.totalTickets || 0;
-            document.getElementById('total-users').textContent = data.totalUsers || 0;
-            document.getElementById('total-organizers').textContent = data.totalOrganizers || 0;
+            // ป้องกัน error โดยตรวจสอบ element ก่อน
+            const totalEventsEl = document.getElementById('total-events');
+            const totalTicketsEl = document.getElementById('total-tickets');
+            const totalUsersEl = document.getElementById('total-users');
+            const totalOrganizersEl = document.getElementById('total-organizers');
+            
+            if (totalEventsEl) totalEventsEl.textContent = data.totalEvents || 0;
+            if (totalTicketsEl) totalTicketsEl.textContent = data.totalTickets || 0;
+            if (totalUsersEl) totalUsersEl.textContent = data.totalUsers || 0;
+            if (totalOrganizersEl) totalOrganizersEl.textContent = data.totalOrganizers || 0;
         })
         .catch(error => {
             console.error('Error loading statistics:', error);
@@ -222,8 +235,8 @@ function generateQRCode(text, containerId) {
             container.innerHTML = '';
             new QRCode(container, {
                 text: text,
-                width: 200,
-                height: 200,
+                width: 160,
+                height: 160,
                 colorDark: '#000000',
                 colorLight: '#ffffff',
                 correctLevel: QRCode.CorrectLevel.H
@@ -268,6 +281,60 @@ function searchEvents(query) {
     });
 }
 
+// Purchase ticket function
+async function purchaseTicket(eventId, seatNumber, price) {
+  try {
+    console.log('Attempting to purchase ticket with:', {
+      eventId,
+      eventType: 'Movie',
+      userId: '670edc8b9db84c5cb34f2a1b',
+      seats: [seatNumber || 'A1'],
+      price: price
+    });
+
+    const response = await fetch('/tickets/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        eventId: eventId,
+        eventType: 'Movie',
+        userId: '670edc8b9db84c5cb34f2a1b',
+        seats: [seatNumber || 'A1'],
+        price: price
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Server response:', response.status, errorText);
+      throw new Error(`Server error (${response.status}): ${errorText}`);
+    }
+    
+    const result = await response.text();
+    console.log('Purchase successful:', result);
+    alert('✅ Ticket purchased successfully!');
+    window.location.href = `/tickets/my-tickets/${eventId}`;
+  } catch (error) {
+    alert('❌ Purchase failed: ' + error.message);
+    console.error('Purchase error:', error);
+  }
+}
+
+// Test purchase function for demo
+function testPurchaseTicket(eventId = null) {
+    // If no eventId provided, try to get it from the current page
+    if (!eventId) {
+        // Try to get eventId from the current page URL or data attributes
+        const currentEventId = document.querySelector('[data-event-id]')?.dataset.eventId ||
+                              window.location.pathname.split('/').pop() ||
+                              '68efd1f5e6cf58be816ef44c'; // fallback
+        eventId = currentEventId;
+    }
+    
+    console.log('Testing ticket purchase with eventId:', eventId);
+    purchaseTicket(eventId, 'A-12', 25);
+}
+
 // Export functions for global use
 window.EventTicketing = {
     startCountdown: startCountdown,
@@ -276,5 +343,7 @@ window.EventTicketing = {
     formatCurrency: formatCurrency,
     searchEvents: searchEvents,
     validateForm: validateForm,
-    previewImage: previewImage
+    previewImage: previewImage,
+    purchaseTicket: purchaseTicket,
+    testPurchaseTicket: testPurchaseTicket
 };
