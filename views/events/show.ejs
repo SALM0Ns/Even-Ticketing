@@ -1,7 +1,7 @@
 <%- include('../partials/header') %>
 
 <!-- Hero Section with Event Background -->
-<div class="event-hero position-relative" style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('<%= event.image || '/images/default-event.jpg' %>'); background-size: cover; background-position: center; min-height: 80vh;">
+<div class="event-hero position-relative" style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('<%= event.wallpaper || event.image || '/images/default-event.jpg' %>'); background-size: cover; background-position: center; min-height: 80vh;">
     <div class="container position-relative" style="z-index: 2;">
         <div class="row align-items-center min-vh-80">
             <div class="col-lg-8">
@@ -57,10 +57,44 @@
                     </div>
 
                     <!-- Countdown Timer -->
-                    <div class="countdown-timer" data-event-date="<%= event.date %>">
-                        <h5 class="mb-3">Event Starts In:</h5>
-                        <div class="countdown-display">
-                            <!-- Countdown will be populated by JavaScript -->
+                    <div class="countdown-timer mb-4" data-event-date="<%= event.date %>">
+                        <div class="countdown-card bg-dark bg-opacity-75 rounded-4 p-4 border border-light border-opacity-25">
+                            <h4 class="text-center text-white mb-3">
+                                <i class="fas fa-clock me-2 text-warning"></i>
+                                Event Starts In
+                            </h4>
+                            <div class="countdown-display d-flex justify-content-center gap-3 flex-wrap">
+                                <div class="countdown-item text-center">
+                                    <div class="countdown-number bg-primary text-white rounded-3 p-3 mb-2" id="days">
+                                        <span class="h2 fw-bold mb-0">00</span>
+                                    </div>
+                                    <div class="countdown-label text-white-50 small">DAYS</div>
+                                </div>
+                                <div class="countdown-item text-center">
+                                    <div class="countdown-number bg-success text-white rounded-3 p-3 mb-2" id="hours">
+                                        <span class="h2 fw-bold mb-0">00</span>
+                                    </div>
+                                    <div class="countdown-label text-white-50 small">HOURS</div>
+                                </div>
+                                <div class="countdown-item text-center">
+                                    <div class="countdown-number bg-warning text-dark rounded-3 p-3 mb-2" id="minutes">
+                                        <span class="h2 fw-bold mb-0">00</span>
+                                    </div>
+                                    <div class="countdown-label text-white-50 small">MINUTES</div>
+                                </div>
+                                <div class="countdown-item text-center">
+                                    <div class="countdown-number bg-danger text-white rounded-3 p-3 mb-2" id="seconds">
+                                        <span class="h2 fw-bold mb-0">00</span>
+                                    </div>
+                                    <div class="countdown-label text-white-50 small">SECONDS</div>
+                                </div>
+                            </div>
+                            <div class="text-center mt-3">
+                                <small class="text-white-50">
+                                    <i class="fas fa-calendar-check me-1"></i>
+                                    Event Date: <span id="event-date-display"></span>
+                                </small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -608,9 +642,9 @@ function createCinemaLayout(container, totalSeats, takenSeats) {
     // Cinema layout configuration - 18 seats per row with VIP sections
     const cinemaConfig = {
         seatsPerRow: 18, // 4 left + 5 middle-left + 5 middle-right + 4 right
-        totalRows: Math.ceil(totalSeats / 18),
+        totalRows: 11, // Fixed to 11 rows (A-K)
         aisleAfterRow: 4, // Main aisle after row 4
-        vipRows: [14, 15], // Rows N and O are VIP (14th and 15th rows)
+        vipRows: [10, 11], // Rows J and K are VIP (10th and 11th rows)
         leftSectionSeats: 4,
         middleLeftSectionSeats: 5,
         middleRightSectionSeats: 5,
@@ -1122,6 +1156,81 @@ function bookmarkEvent() {
     // TODO: Implement bookmark functionality
     alert('Bookmark functionality coming soon!');
 }
+
+// Countdown Timer Functionality
+function initializeCountdownTimer() {
+    const countdownTimer = document.querySelector('.countdown-timer');
+    if (!countdownTimer) return;
+    
+    const eventDate = new Date(countdownTimer.dataset.eventDate);
+    const eventDateDisplay = document.getElementById('event-date-display');
+    
+    // Display event date
+    if (eventDateDisplay) {
+        eventDateDisplay.textContent = eventDate.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+    
+    function updateCountdown() {
+        const now = new Date().getTime();
+        const distance = eventDate.getTime() - now;
+        
+        if (distance < 0) {
+            // Event has passed
+            document.getElementById('days').innerHTML = '<span class="h2 fw-bold mb-0">00</span>';
+            document.getElementById('hours').innerHTML = '<span class="h2 fw-bold mb-0">00</span>';
+            document.getElementById('minutes').innerHTML = '<span class="h2 fw-bold mb-0">00</span>';
+            document.getElementById('seconds').innerHTML = '<span class="h2 fw-bold mb-0">00</span>';
+            
+            // Update the title to show event has started
+            const titleElement = countdownTimer.querySelector('h4');
+            if (titleElement) {
+                titleElement.innerHTML = '<i class="fas fa-play me-2 text-success"></i>Event Has Started!';
+            }
+            return;
+        }
+        
+        // Calculate time units
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        
+        // Update the countdown display
+        document.getElementById('days').innerHTML = `<span class="h2 fw-bold mb-0">${days.toString().padStart(2, '0')}</span>`;
+        document.getElementById('hours').innerHTML = `<span class="h2 fw-bold mb-0">${hours.toString().padStart(2, '0')}</span>`;
+        document.getElementById('minutes').innerHTML = `<span class="h2 fw-bold mb-0">${minutes.toString().padStart(2, '0')}</span>`;
+        document.getElementById('seconds').innerHTML = `<span class="h2 fw-bold mb-0">${seconds.toString().padStart(2, '0')}</span>`;
+        
+        // Add pulse animation to seconds when it's the last minute
+        const secondsElement = document.getElementById('seconds');
+        if (days === 0 && hours === 0 && minutes === 0) {
+            secondsElement.style.animation = 'pulse 1s infinite';
+        } else {
+            secondsElement.style.animation = 'none';
+        }
+    }
+    
+    // Update countdown immediately
+    updateCountdown();
+    
+    // Update countdown every second
+    const countdownInterval = setInterval(updateCountdown, 1000);
+    
+    // Store interval ID for cleanup if needed
+    countdownTimer.countdownInterval = countdownInterval;
+}
+
+// Initialize countdown timer when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCountdownTimer();
+});
 </script>
 
 <%- include('../partials/footer') %>

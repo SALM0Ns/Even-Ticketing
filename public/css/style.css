@@ -2505,3 +2505,113 @@ section {
         padding: 0.5rem;
     }
 }
+
+/* Countdown Timer Styles */
+.countdown-timer {
+    margin: 2rem 0;
+}
+
+.countdown-card {
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.countdown-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.countdown-display {
+    gap: 1rem;
+}
+
+.countdown-item {
+    min-width: 80px;
+}
+
+.countdown-number {
+    min-width: 70px;
+    min-height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.countdown-number:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.countdown-label {
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* Pulse animation for urgency */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 6px 25px rgba(220, 53, 69, 0.4);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+}
+
+/* Responsive Countdown Timer */
+@media (max-width: 768px) {
+    .countdown-display {
+        gap: 0.5rem;
+    }
+    
+    .countdown-item {
+        min-width: 60px;
+    }
+    
+    .countdown-number {
+        min-width: 50px;
+        min-height: 50px;
+        padding: 0.5rem !important;
+    }
+    
+    .countdown-number span {
+        font-size: 1.2rem !important;
+    }
+    
+    .countdown-label {
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .countdown-display {
+        gap: 0.25rem;
+    }
+    
+    .countdown-item {
+        min-width: 50px;
+    }
+    
+    .countdown-number {
+        min-width: 40px;
+        min-height: 40px;
+        padding: 0.25rem !important;
+    }
+    
+    .countdown-number span {
+        font-size: 1rem !important;
+    }
+    
+    .countdown-label {
+        font-size: 0.6rem;
+    }
+}

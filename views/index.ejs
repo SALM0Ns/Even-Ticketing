@@ -125,6 +125,16 @@ const dateMock = {
 // Load events from database
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Homepage JavaScript loaded - Cache busted:', new Date().getTime());
+    console.log('🎯 Category badges should now show correctly (Movie, Stage Play, Live Orchestra)');
+    
+    // Force clear browser cache for images
+    if ('caches' in window) {
+        caches.keys().then(function(names) {
+            for (let name of names) {
+                caches.delete(name);
+            }
+        });
+    }
     
     // Clear any old content that might be cached
     const containers = ['movies-container', 'stage-plays-container', 'orchestra-container', 'coming-soon-container', 'starting-soon-container'];
@@ -357,6 +367,13 @@ function loadStartingSoon() {
 }
 
 function createEventCard(event, category, isComingSoon = false, isStartingSoon = false) {
+    // Debug logging for image fields
+    console.log(`Creating card for ${event.name}:`, {
+        poster: event.poster,
+        image: event.image,
+        using: event.poster || event.image || '/images/default-event.jpg'
+    });
+    
     const eventDate = new Date(event.date);
     const formattedDate = eventDate.toLocaleDateString('en-US', {
         year: 'numeric',
@@ -395,13 +412,22 @@ function createEventCard(event, category, isComingSoon = false, isStartingSoon =
         badgeHtml = '<span class="badge bg-warning text-dark position-absolute top-0 end-0 m-2">Live Orchestra</span>';
     } else if (isStartingSoon) {
         badgeHtml = '<span class="badge bg-danger position-absolute top-0 end-0 m-2">Movie</span>';
+    } else {
+        // Add category badge for normal events
+        const categoryNames = {
+            'movies': 'Movie',
+            'stage-plays': 'Stage Play',
+            'orchestra': 'Live Orchestra'
+        };
+        const categoryName = categoryNames[category] || 'Event';
+        badgeHtml = `<span class="badge bg-${color} position-absolute top-0 end-0 m-2">${categoryName}</span>`;
     }
 
     return `
         <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
             <div class="event-poster-card position-relative" onclick="navigateToEvent('${event._id}', '${category}')">
                 <div class="poster-container">
-                    <img src="${event.image || '/images/default-event.jpg'}" alt="${event.name}" class="event-poster">
+                    <img src="${event.poster ? event.poster + '?v=' + Date.now() : '/images/default-event.jpg'}" alt="${event.name}" class="event-poster">
                     ${badgeHtml}
                     <div class="poster-overlay">
                         <div class="overlay-content">

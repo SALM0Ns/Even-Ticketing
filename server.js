@@ -44,7 +44,7 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Global variables for templates
 app.use((req, res, next) => {
-  res.locals.user = req.session.user || null;
+  res.locals.user = req.session ? req.session.user : null;
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
   res.locals.info = req.flash('info');
@@ -73,14 +73,14 @@ app.get('/', async (req, res) => {
     
     res.render('index', { 
       title: 'CursedTicket - Premium Entertainment',
-      user: req.session.user,
+      user: req.session ? req.session.user : null,
       featuredEvents: shuffledFeatured
     });
   } catch (error) {
     console.error('Error loading homepage:', error);
     res.render('index', { 
       title: 'CursedTicket - Premium Entertainment',
-      user: req.session.user,
+      user: req.session ? req.session.user : null,
       featuredEvents: []
     });
   }
@@ -129,7 +129,11 @@ app.get('/api/events/featured', async (req, res) => {
 app.get('/api/events/movies', async (req, res) => {
   try {
     const movies = await Movie.find().sort({ date: 1 });
-    res.json({ events: movies });
+    const moviesWithCategory = movies.map(movie => ({
+      ...movie.toObject(),
+      category: 'movies'
+    }));
+    res.json({ events: moviesWithCategory });
   } catch (error) {
     console.error('Error fetching movies:', error);
     res.status(500).json({ error: 'Failed to fetch movies' });
@@ -140,7 +144,11 @@ app.get('/api/events/movies', async (req, res) => {
 app.get('/api/events/stage-plays', async (req, res) => {
   try {
     const stagePlays = await StagePlays.find().sort({ date: 1 });
-    res.json({ events: stagePlays });
+    const playsWithCategory = stagePlays.map(play => ({
+      ...play.toObject(),
+      category: 'stage-plays'
+    }));
+    res.json({ events: playsWithCategory });
   } catch (error) {
     console.error('Error fetching stage plays:', error);
     res.status(500).json({ error: 'Failed to fetch stage plays' });
@@ -151,7 +159,11 @@ app.get('/api/events/stage-plays', async (req, res) => {
 app.get('/api/events/orchestra', async (req, res) => {
   try {
     const orchestra = await LiveOrchestra.find().sort({ date: 1 });
-    res.json({ events: orchestra });
+    const orchestraWithCategory = orchestra.map(concert => ({
+      ...concert.toObject(),
+      category: 'orchestra'
+    }));
+    res.json({ events: orchestraWithCategory });
   } catch (error) {
     console.error('Error fetching orchestra events:', error);
     res.status(500).json({ error: 'Failed to fetch orchestra events' });
@@ -218,7 +230,7 @@ app.use('/events', eventRoutes);
 app.use((req, res) => {
   res.status(404).render('404', { 
     title: 'Page Not Found',
-    user: req.session.user 
+    user: req.session ? req.session.user : null
   });
 });
 
@@ -227,7 +239,7 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).render('500', { 
     title: 'Server Error',
-    user: req.session.user,
+    user: req.session ? req.session.user : null,
     error: process.env.NODE_ENV === 'development' ? err : {}
   });
 });
