@@ -9,6 +9,9 @@ require('dotenv').config();
 // Import database connection
 const connectDB = require('./config/database');
 
+// Import models
+const Location = require('./models/Location');
+
 const app = express();
 
 // Connect to database
@@ -22,11 +25,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Session configuration
 app.use(session({
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.SESSION_SECRET || 'your-super-secret-session-key-change-this-in-production',
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI,
+    mongoUrl: process.env.MONGODB_URI || 'mongodb://localhost:27017/Event',
     touchAfter: 24 * 3600 // lazy session update
   }),
   cookie: {
@@ -62,19 +65,23 @@ const dateMock = require('./utils/dateMock');
 // Routes
 app.get('/', async (req, res) => {
   try {
-    // Get featured events from all categories
-    const featuredMovies = await Movie.find().limit(3).populate('organizer', 'name');
-    const featuredPlays = await StagePlays.find().limit(3).populate('organizer', 'name');
-    const featuredOrchestra = await LiveOrchestra.find().limit(3).populate('organizer', 'name');
+    // Get all events for featured section
+    const featuredMovies = await Movie.find().populate('organizer', 'name');
+    const featuredPlays = await StagePlays.find().populate('organizer', 'name');
+    const featuredOrchestra = await LiveOrchestra.find().populate('organizer', 'name');
     
-    // Combine and shuffle featured events
-    const allFeatured = [...featuredMovies, ...featuredPlays, ...featuredOrchestra];
-    const shuffledFeatured = allFeatured.sort(() => 0.5 - Math.random()).slice(0, 6);
+    // Combine and sort featured events by date, then limit to 6
+    const allFeatured = [
+      ...featuredMovies.map(movie => ({ ...movie.toObject(), category: 'movies' })),
+      ...featuredPlays.map(play => ({ ...play.toObject(), category: 'stage-plays' })),
+      ...featuredOrchestra.map(concert => ({ ...concert.toObject(), category: 'orchestra' }))
+    ];
+    const sortedFeatured = allFeatured.sort((a, b) => new Date(a.date) - new Date(b.date)).slice(0, 6);
     
     res.render('index', { 
       title: 'CursedTicket - Premium Entertainment',
       user: req.session.user,
-      featuredEvents: shuffledFeatured
+      featuredEvents: sortedFeatured
     });
   } catch (error) {
     console.error('Error loading homepage:', error);
@@ -111,17 +118,45 @@ app.get('/api/statistics', async (req, res) => {
 // API Routes for featured events
 app.get('/api/events/featured', async (req, res) => {
   try {
-    const featuredMovies = await Movie.find().limit(2).populate('organizer', 'name');
-    const featuredPlays = await StagePlays.find().limit(2).populate('organizer', 'name');
-    const featuredOrchestra = await LiveOrchestra.find().limit(2).populate('organizer', 'name');
+    // Get all events regardless of status for featured section
+    const featuredMovies = await Movie.find().populate('organizer', 'name');
+    const featuredPlays = await StagePlays.find().populate('organizer', 'name');
+    const featuredOrchestra = await LiveOrchestra.find().populate('organizer', 'name');
     
-    const allFeatured = [...featuredMovies, ...featuredPlays, ...featuredOrchestra];
-    const shuffledFeatured = allFeatured.sort(() => 0.5 - Math.random()).slice(0, 6);
+    const allFeatured = [
+      ...featuredMovies.map(movie => ({ ...movie.toObject(), category: 'movies' })),
+      ...featuredPlays.map(play => ({ ...play.toObject(), category: 'stage-plays' })),
+      ...featuredOrchestra.map(concert => ({ ...concert.toObject(), category: 'orchestra' }))
+    ];
+    const sortedFeatured = allFeatured.sort((a, b) => new Date(a.date) - new Date(b.date)).slice(0, 6);
     
-    res.json({ events: shuffledFeatured });
+    res.json({ events: sortedFeatured });
   } catch (error) {
     console.error('Error loading featured events:', error);
     res.status(500).json({ error: 'Failed to load featured events' });
+  }
+});
+
+// API Route for locations
+app.get('/api/locations', async (req, res) => {
+  try {
+    const { category } = req.query;
+    let query = { isActive: true };
+    
+    // Filter by venue type based on event category
+    if (category === 'movies') {
+      query.venueType = 'cinema';
+    } else if (category === 'stage-plays') {
+      query.venueType = 'theater';
+    } else if (category === 'orchestra') {
+      query.venueType = 'concert_hall';
+    }
+    
+    const locations = await Location.find(query).sort({ name: 1 });
+    res.json({ locations });
+  } catch (error) {
+    console.error('Error loading locations:', error);
+    res.status(500).json({ error: 'Failed to load locations' });
   }
 });
 
@@ -129,7 +164,11 @@ app.get('/api/events/featured', async (req, res) => {
 app.get('/api/events/movies', async (req, res) => {
   try {
     const movies = await Movie.find().sort({ date: 1 });
-    res.json({ events: movies });
+    const moviesWithCategory = movies.map(movie => ({
+      ...movie.toObject(),
+      category: 'movies'
+    }));
+    res.json({ events: moviesWithCategory });
   } catch (error) {
     console.error('Error fetching movies:', error);
     res.status(500).json({ error: 'Failed to fetch movies' });
@@ -140,7 +179,11 @@ app.get('/api/events/movies', async (req, res) => {
 app.get('/api/events/stage-plays', async (req, res) => {
   try {
     const stagePlays = await StagePlays.find().sort({ date: 1 });
-    res.json({ events: stagePlays });
+    const stagePlaysWithCategory = stagePlays.map(play => ({
+      ...play.toObject(),
+      category: 'stage-plays'
+    }));
+    res.json({ events: stagePlaysWithCategory });
   } catch (error) {
     console.error('Error fetching stage plays:', error);
     res.status(500).json({ error: 'Failed to fetch stage plays' });
@@ -151,7 +194,11 @@ app.get('/api/events/stage-plays', async (req, res) => {
 app.get('/api/events/orchestra', async (req, res) => {
   try {
     const orchestra = await LiveOrchestra.find().sort({ date: 1 });
-    res.json({ events: orchestra });
+    const orchestraWithCategory = orchestra.map(concert => ({
+      ...concert.toObject(),
+      category: 'orchestra'
+    }));
+    res.json({ events: orchestraWithCategory });
   } catch (error) {
     console.error('Error fetching orchestra events:', error);
     res.status(500).json({ error: 'Failed to fetch orchestra events' });
@@ -206,13 +253,39 @@ app.get('/api/events/starting-soon', async (req, res) => {
 
 // Import routes
 const eventRoutes = require('./routes/events');
-// const authRoutes = require('./routes/auth');
-// const userRoutes = require('./routes/users');
+const { router: authRoutes, requireAuth, requireRole } = require('./routes/auth');
+const attendeeRoutes = require('./routes/attendee');
+const organizerRoutes = require('./routes/organizer');
+const guestRoutes = require('./routes/guest');
 
 // Use routes
 app.use('/events', eventRoutes);
-// app.use('/auth', authRoutes);
-// app.use('/users', userRoutes);
+app.use('/auth', authRoutes);
+app.use('/attendee', attendeeRoutes);
+app.use('/organizer', organizerRoutes);
+app.use('/guest', guestRoutes);
+
+// Profile route
+app.get('/profile', requireAuth, async (req, res) => {
+  try {
+    const User = require('./models/User');
+    const user = await User.findById(req.session.user.id);
+    
+    if (!user) {
+      req.flash('error', 'User not found');
+      return res.redirect('/auth/login');
+    }
+    
+    res.render('auth/profile', {
+      title: 'Profile - CursedTicket',
+      user: user
+    });
+  } catch (error) {
+    console.error('Profile error:', error);
+    req.flash('error', 'Failed to load profile');
+    res.redirect('/');
+  }
+});
 
 // 404 handler
 app.use((req, res) => {
@@ -233,7 +306,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`📱 Environment: ${process.env.NODE_ENV}`);

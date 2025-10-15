@@ -2,9 +2,8 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/Event';
+    const conn = await mongoose.connect(mongoURI, {
       dbName: 'Event' // Connect to your existing 'Event' database
     });
 

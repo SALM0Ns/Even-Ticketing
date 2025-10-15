@@ -29,6 +29,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (window.location.pathname === '/') {
         loadFeaturedEvents();
         loadStatistics();
+        loadMovies();
+        loadStagePlays();
+        loadOrchestra();
+        
+        // Initialize scroll buttons after all content is loaded
+        setTimeout(() => {
+            updateScrollButtons();
+        }, 1000);
     }
 });
 
@@ -164,6 +172,93 @@ function createEventCard(event) {
     `;
 }
 
+// Load Movies
+function loadMovies() {
+    fetch('/api/events/movies')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('movies-container');
+            
+            if (data.events && data.events.length > 0) {
+                // Limit to 6 movies for better layout
+                const limitedEvents = data.events.slice(0, 6);
+                container.innerHTML = limitedEvents.map(event => createEventCard(event)).join('');
+                
+                // Refresh layout after content is loaded
+                setTimeout(() => {
+                    if (window.LayoutManager) {
+                        window.LayoutManager.refreshLayout();
+                    }
+                }, 100);
+            } else {
+                container.innerHTML = '<div class="col-12"><p class="text-muted text-center">No movies available at the moment.</p></div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading movies:', error);
+            const container = document.getElementById('movies-container');
+            container.innerHTML = '<div class="col-12"><p class="text-muted text-center">Error loading movies.</p></div>';
+        });
+}
+
+// Load Stage Plays
+function loadStagePlays() {
+    fetch('/api/events/stage-plays')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('stage-plays-container');
+            
+            if (data.events && data.events.length > 0) {
+                // Limit to 6 stage plays for better layout
+                const limitedEvents = data.events.slice(0, 6);
+                container.innerHTML = limitedEvents.map(event => createEventCard(event)).join('');
+                
+                // Refresh layout after content is loaded
+                setTimeout(() => {
+                    if (window.LayoutManager) {
+                        window.LayoutManager.refreshLayout();
+                    }
+                }, 100);
+            } else {
+                container.innerHTML = '<div class="col-12"><p class="text-muted text-center">No stage plays available at the moment.</p></div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading stage plays:', error);
+            const container = document.getElementById('stage-plays-container');
+            container.innerHTML = '<div class="col-12"><p class="text-muted text-center">Error loading stage plays.</p></div>';
+        });
+}
+
+// Load Live Orchestra
+function loadOrchestra() {
+    fetch('/api/events/orchestra')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('orchestra-container');
+            
+            if (data.events && data.events.length > 0) {
+                // Limit to 6 orchestra events for better layout
+                const limitedEvents = data.events.slice(0, 6);
+                container.innerHTML = limitedEvents.map(event => createEventCard(event)).join('');
+                
+                // Refresh layout after content is loaded
+                setTimeout(() => {
+                    if (window.LayoutManager) {
+                        window.LayoutManager.refreshLayout();
+                    }
+                }, 100);
+            } else {
+                container.innerHTML = '<div class="col-12"><p class="text-muted text-center">No orchestra events available at the moment.</p></div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading orchestra events:', error);
+            const container = document.getElementById('orchestra-container');
+            container.innerHTML = '<div class="col-12"><p class="text-muted text-center">Error loading orchestra events.</p></div>';
+        });
+}
+
 // Load Statistics
 function loadStatistics() {
     fetch('/api/statistics')
@@ -268,6 +363,67 @@ function searchEvents(query) {
     });
 }
 
+// Horizontal Scroll Functions
+function scrollSection(section, direction) {
+    const container = document.getElementById(`${section}-container`);
+    const wrapper = container.querySelector('.horizontal-scroll-wrapper');
+    const scrollAmount = 300; // Width of one card + gap
+    
+    if (wrapper) {
+        const currentScroll = wrapper.scrollLeft;
+        const newScroll = currentScroll + (scrollAmount * direction);
+        
+        wrapper.scrollTo({
+            left: newScroll,
+            behavior: 'smooth'
+        });
+        
+        // Update button states after scroll
+        setTimeout(() => {
+            if (window.EventTicketing && window.EventTicketing.updateScrollButtons) {
+                window.EventTicketing.updateScrollButtons();
+            }
+        }, 300);
+    }
+}
+
+// Initialize scroll buttons visibility
+function updateScrollButtons() {
+    const sections = ['movies', 'stage-plays', 'orchestra'];
+    
+    sections.forEach(section => {
+        const container = document.getElementById(`${section}-container`);
+        const wrapper = container.querySelector('.horizontal-scroll-wrapper');
+        const leftBtn = container.querySelector('.scroll-left');
+        const rightBtn = container.querySelector('.scroll-right');
+        
+        if (wrapper && leftBtn && rightBtn) {
+            // Always show buttons initially
+            leftBtn.style.display = 'flex';
+            rightBtn.style.display = 'flex';
+            
+            // Update button states based on scroll position
+            const updateButtons = () => {
+                const isAtStart = wrapper.scrollLeft <= 5;
+                const isAtEnd = wrapper.scrollLeft >= (wrapper.scrollWidth - wrapper.clientWidth - 5);
+                
+                leftBtn.disabled = isAtStart;
+                rightBtn.disabled = isAtEnd;
+                
+                leftBtn.style.opacity = isAtStart ? '0.3' : '0.8';
+                rightBtn.style.opacity = isAtEnd ? '0.3' : '0.8';
+            };
+            
+            // Remove existing listeners to avoid duplicates
+            wrapper.removeEventListener('scroll', updateButtons);
+            wrapper.addEventListener('scroll', updateButtons);
+            
+            // Initial update
+            setTimeout(updateButtons, 100);
+        }
+    });
+}
+
 // Export functions for global use
 window.EventTicketing = {
     startCountdown: startCountdown,
@@ -276,5 +432,7 @@ window.EventTicketing = {
     formatCurrency: formatCurrency,
     searchEvents: searchEvents,
     validateForm: validateForm,
-    previewImage: previewImage
+    previewImage: previewImage,
+    scrollSection: scrollSection,
+    updateScrollButtons: updateScrollButtons
 };

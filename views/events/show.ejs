@@ -1,5 +1,20 @@
 <%- include('../partials/header') %>
 
+<%
+  const purchasePath = `/attendee/buy/${event._id}`;
+  const isAttendeeUser = user && user.role === 'attendee';
+  const isOrganizerUser = user && user.role === 'organizer';
+  const loginRedirectTarget = `/auth/login?redirect=${encodeURIComponent(purchasePath)}`;
+  let primaryCtaHref = isAttendeeUser ? purchasePath : loginRedirectTarget;
+  let primaryCtaLabel = isAttendeeUser ? 'Buy Tickets' : 'Login to Buy Tickets';
+  let primaryCtaIcon = 'fas fa-ticket-alt me-2';
+  if (isOrganizerUser) {
+    primaryCtaHref = '/organizer/events';
+    primaryCtaLabel = 'Manage My Events';
+    primaryCtaIcon = 'fas fa-calendar-check me-2';
+  }
+%>
+
 <!-- Hero Section with Event Background -->
 <div class="event-hero position-relative" style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('<%= event.image || '/images/default-event.jpg' %>'); background-size: cover; background-position: center; min-height: 80vh;">
     <div class="container position-relative" style="z-index: 2;">
@@ -43,8 +58,8 @@
 
                     <!-- Action Buttons -->
                     <div class="d-flex gap-3 mb-4">
-                        <a href="#tickets" class="btn btn-primary btn-lg">
-                            <i class="fas fa-ticket-alt me-2"></i>Buy Tickets
+                        <a href="<%= primaryCtaHref %>" class="btn btn-primary btn-lg">
+                            <i class="<%= primaryCtaIcon %>"></i><%= primaryCtaLabel %>
                         </a>
                         <button class="btn btn-outline-light btn-lg" onclick="shareEvent()">
                             <i class="fas fa-share-alt me-2"></i>Share
@@ -323,8 +338,8 @@
                         </div>
                     <% } %>
                     <hr>
-                    <a href="#" class="btn btn-primary w-100">
-                        <i class="fas fa-shopping-cart me-2"></i>Buy Tickets Now
+                    <a href="<%= primaryCtaHref %>" class="btn btn-primary w-100">
+                        <i class="<%= primaryCtaIcon %>"></i><%= primaryCtaLabel %>
                     </a>
                 </div>
             </div>
