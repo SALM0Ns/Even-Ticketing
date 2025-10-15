@@ -187,6 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     loadHeroStats();
+    loadFeaturedEvents();
     loadMovies();
     loadStagePlays();
     loadOrchestra();
@@ -209,6 +210,19 @@ function loadHeroStats() {
             document.getElementById('hero-total-events').textContent = '0+';
             document.getElementById('hero-total-tickets').textContent = '0+';
             document.getElementById('hero-total-venues').textContent = '0+';
+        });
+}
+
+function loadFeaturedEvents() {
+    fetch('/api/events/featured')
+        .then(response => response.json())
+        .then(data => {
+            console.log('Featured events loaded:', data.events.length);
+            // This function is called but the featured events section is handled by the server-side rendering
+            // The featured events are already displayed in the EJS template
+        })
+        .catch(error => {
+            console.error('Error loading featured events:', error);
         });
 }
 
@@ -425,28 +439,43 @@ function createEventCard(event, category, isComingSoon = false, isStartingSoon =
     const categoryColors = {
         'movies': 'primary',
         'stage-plays': 'success',
-        'orchestra': 'warning'
+        'orchestra': 'warning',
+        'event': 'secondary'
     };
 
     const categoryIcons = {
         'movies': 'fas fa-film',
         'stage-plays': 'fas fa-theater-masks',
-        'orchestra': 'fas fa-music'
+        'orchestra': 'fas fa-music',
+        'event': 'fas fa-calendar'
     };
 
-    const color = categoryColors[category] || 'primary';
-    const icon = categoryIcons[category] || 'fas fa-calendar';
-    
-    // Override category for specific sections
-    if (isComingSoon) {
-        category = 'orchestra';
-        color = 'warning';
-        icon = 'fas fa-music';
-    } else if (isStartingSoon) {
-        category = 'movies';
-        color = 'primary';
-        icon = 'fas fa-film';
-    }
+    const categoryNames = {
+        'movies': 'Movies',
+        'stage-plays': 'Stage Plays',
+        'orchestra': 'Live Orchestra',
+        'event': 'Event'
+    };
+
+    const displayCategory = isComingSoon
+        ? 'orchestra'
+        : (isStartingSoon ? 'movies' : (category || event.category || 'event'));
+
+    const color = categoryColors[displayCategory] || 'primary';
+    const icon = categoryIcons[displayCategory] || 'fas fa-calendar';
+    const categoryName = categoryNames[displayCategory] || categoryNames.event;
+    const priceRaw = event?.pricing?.basePrice;
+    const priceNumber = Number(priceRaw);
+    const hasValidPrice = priceRaw !== undefined && priceRaw !== null && !Number.isNaN(priceNumber);
+    const formattedPrice = hasValidPrice
+        ? `$${priceNumber.toFixed(2)}`
+        : 'Free';
+    const venueName = event?.location?.name || 'Venue TBA';
+    const fullDescription = event?.description || 'Experience this amazing event';
+    const trimmedDescription = fullDescription.length > 120
+        ? `${fullDescription.slice(0, 120)}...`
+        : fullDescription;
+    const horizontalPriceLabel = formattedPrice === 'Free' ? 'Free' : `From ${formattedPrice}`;
 
     let badgeHtml = '';
     if (isComingSoon) {

@@ -9,6 +9,9 @@ require('dotenv').config();
 // Import database connection
 const connectDB = require('./config/database');
 
+// Import models
+const Location = require('./models/Location');
+
 const app = express();
 
 // Connect to database
@@ -26,7 +29,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI,
+    mongoUrl: process.env.MONGODB_URI || 'mongodb://localhost:27017/Event',
     touchAfter: 24 * 3600 // lazy session update
   }),
   cookie: {
@@ -69,9 +72,13 @@ app.get('/', async (req, res) => {
     const featuredPlays = await StagePlays.find().limit(3);
     const featuredOrchestra = await LiveOrchestra.find().limit(3);
     
-    // Combine and shuffle featured events
-    const allFeatured = [...featuredMovies, ...featuredPlays, ...featuredOrchestra];
-    const shuffledFeatured = allFeatured.sort(() => 0.5 - Math.random()).slice(0, 6);
+    // Combine and sort featured events by date, then limit to 6
+    const allFeatured = [
+      ...featuredMovies.map(movie => ({ ...movie.toObject(), category: 'movies' })),
+      ...featuredPlays.map(play => ({ ...play.toObject(), category: 'stage-plays' })),
+      ...featuredOrchestra.map(concert => ({ ...concert.toObject(), category: 'orchestra' }))
+    ];
+    const sortedFeatured = allFeatured.sort((a, b) => new Date(a.date) - new Date(b.date)).slice(0, 6);
     
     res.render('index', { 
       title: 'CursedTicket - Premium Entertainment',
@@ -117,13 +124,40 @@ app.get('/api/events/featured', async (req, res) => {
     const featuredPlays = await StagePlays.find().limit(2);
     const featuredOrchestra = await LiveOrchestra.find().limit(2);
     
-    const allFeatured = [...featuredMovies, ...featuredPlays, ...featuredOrchestra];
-    const shuffledFeatured = allFeatured.sort(() => 0.5 - Math.random()).slice(0, 6);
+    const allFeatured = [
+      ...featuredMovies.map(movie => ({ ...movie.toObject(), category: 'movies' })),
+      ...featuredPlays.map(play => ({ ...play.toObject(), category: 'stage-plays' })),
+      ...featuredOrchestra.map(concert => ({ ...concert.toObject(), category: 'orchestra' }))
+    ];
+    const sortedFeatured = allFeatured.sort((a, b) => new Date(a.date) - new Date(b.date)).slice(0, 6);
     
-    res.json({ events: shuffledFeatured });
+    res.json({ events: sortedFeatured });
   } catch (error) {
     console.error('Error loading featured events:', error);
     res.status(500).json({ error: 'Failed to load featured events' });
+  }
+});
+
+// API Route for locations
+app.get('/api/locations', async (req, res) => {
+  try {
+    const { category } = req.query;
+    let query = { isActive: true };
+    
+    // Filter by venue type based on event category
+    if (category === 'movies') {
+      query.venueType = 'cinema';
+    } else if (category === 'stage-plays') {
+      query.venueType = 'theater';
+    } else if (category === 'orchestra') {
+      query.venueType = 'concert_hall';
+    }
+    
+    const locations = await Location.find(query).sort({ name: 1 });
+    res.json({ locations });
+  } catch (error) {
+    console.error('Error loading locations:', error);
+    res.status(500).json({ error: 'Failed to load locations' });
   }
 });
 
@@ -259,7 +293,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`📱 Environment: ${process.env.NODE_ENV}`);

@@ -29,6 +29,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (window.location.pathname === '/') {
         loadFeaturedEvents();
         loadStatistics();
+        loadMovies();
+        loadStagePlays();
+        loadOrchestra();
+        
+        // Initialize scroll buttons after all content is loaded
+        setTimeout(() => {
+            updateScrollButtons();
+        }, 1000);
     }
 });
 
@@ -169,6 +177,93 @@ function createEventCard(event) {
             </div>
         </div>
     `;
+}
+
+// Load Movies
+function loadMovies() {
+    fetch('/api/events/movies')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('movies-container');
+            
+            if (data.events && data.events.length > 0) {
+                // Limit to 6 movies for better layout
+                const limitedEvents = data.events.slice(0, 6);
+                container.innerHTML = limitedEvents.map(event => createEventCard(event)).join('');
+                
+                // Refresh layout after content is loaded
+                setTimeout(() => {
+                    if (window.LayoutManager) {
+                        window.LayoutManager.refreshLayout();
+                    }
+                }, 100);
+            } else {
+                container.innerHTML = '<div class="col-12"><p class="text-muted text-center">No movies available at the moment.</p></div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading movies:', error);
+            const container = document.getElementById('movies-container');
+            container.innerHTML = '<div class="col-12"><p class="text-muted text-center">Error loading movies.</p></div>';
+        });
+}
+
+// Load Stage Plays
+function loadStagePlays() {
+    fetch('/api/events/stage-plays')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('stage-plays-container');
+            
+            if (data.events && data.events.length > 0) {
+                // Limit to 6 stage plays for better layout
+                const limitedEvents = data.events.slice(0, 6);
+                container.innerHTML = limitedEvents.map(event => createEventCard(event)).join('');
+                
+                // Refresh layout after content is loaded
+                setTimeout(() => {
+                    if (window.LayoutManager) {
+                        window.LayoutManager.refreshLayout();
+                    }
+                }, 100);
+            } else {
+                container.innerHTML = '<div class="col-12"><p class="text-muted text-center">No stage plays available at the moment.</p></div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading stage plays:', error);
+            const container = document.getElementById('stage-plays-container');
+            container.innerHTML = '<div class="col-12"><p class="text-muted text-center">Error loading stage plays.</p></div>';
+        });
+}
+
+// Load Live Orchestra
+function loadOrchestra() {
+    fetch('/api/events/orchestra')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('orchestra-container');
+            
+            if (data.events && data.events.length > 0) {
+                // Limit to 6 orchestra events for better layout
+                const limitedEvents = data.events.slice(0, 6);
+                container.innerHTML = limitedEvents.map(event => createEventCard(event)).join('');
+                
+                // Refresh layout after content is loaded
+                setTimeout(() => {
+                    if (window.LayoutManager) {
+                        window.LayoutManager.refreshLayout();
+                    }
+                }, 100);
+            } else {
+                container.innerHTML = '<div class="col-12"><p class="text-muted text-center">No orchestra events available at the moment.</p></div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading orchestra events:', error);
+            const container = document.getElementById('orchestra-container');
+            container.innerHTML = '<div class="col-12"><p class="text-muted text-center">Error loading orchestra events.</p></div>';
+        });
 }
 
 // Load Statistics
