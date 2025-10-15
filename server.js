@@ -25,7 +25,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Session configuration
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-super-secret-session-key-change-this-in-production',
+  secret: process.env.SESSION_SECRET || 'cursed-ticket-super-secret-key-2024',
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
@@ -47,10 +47,12 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Global variables for templates
 app.use((req, res, next) => {
-  res.locals.user = req.session.user || null;
+  res.locals.user = req.session ? req.session.user : null;
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
   res.locals.info = req.flash('info');
+  res.locals.title = res.locals.title || 'CursedTicket';
+  res.locals.description = res.locals.description || 'CursedTicket Event System';
   next();
 });
 
@@ -65,10 +67,10 @@ const dateMock = require('./utils/dateMock');
 // Routes
 app.get('/', async (req, res) => {
   try {
-    // Get all events for featured section
-    const featuredMovies = await Movie.find().populate('organizer', 'name');
-    const featuredPlays = await StagePlays.find().populate('organizer', 'name');
-    const featuredOrchestra = await LiveOrchestra.find().populate('organizer', 'name');
+    // Get featured events from all categories
+    const featuredMovies = await Movie.find().limit(3);
+    const featuredPlays = await StagePlays.find().limit(3);
+    const featuredOrchestra = await LiveOrchestra.find().limit(3);
     
     // Combine and sort featured events by date, then limit to 6
     const allFeatured = [
@@ -80,14 +82,14 @@ app.get('/', async (req, res) => {
     
     res.render('index', { 
       title: 'CursedTicket - Premium Entertainment',
-      user: req.session.user,
-      featuredEvents: sortedFeatured
+      user: req.session ? req.session.user : null,
+      featuredEvents: shuffledFeatured
     });
   } catch (error) {
     console.error('Error loading homepage:', error);
     res.render('index', { 
       title: 'CursedTicket - Premium Entertainment',
-      user: req.session.user,
+      user: req.session ? req.session.user : null,
       featuredEvents: []
     });
   }
@@ -118,10 +120,9 @@ app.get('/api/statistics', async (req, res) => {
 // API Routes for featured events
 app.get('/api/events/featured', async (req, res) => {
   try {
-    // Get all events regardless of status for featured section
-    const featuredMovies = await Movie.find().populate('organizer', 'name');
-    const featuredPlays = await StagePlays.find().populate('organizer', 'name');
-    const featuredOrchestra = await LiveOrchestra.find().populate('organizer', 'name');
+    const featuredMovies = await Movie.find().limit(2);
+    const featuredPlays = await StagePlays.find().limit(2);
+    const featuredOrchestra = await LiveOrchestra.find().limit(2);
     
     const allFeatured = [
       ...featuredMovies.map(movie => ({ ...movie.toObject(), category: 'movies' })),
@@ -179,11 +180,11 @@ app.get('/api/events/movies', async (req, res) => {
 app.get('/api/events/stage-plays', async (req, res) => {
   try {
     const stagePlays = await StagePlays.find().sort({ date: 1 });
-    const stagePlaysWithCategory = stagePlays.map(play => ({
+    const playsWithCategory = stagePlays.map(play => ({
       ...play.toObject(),
       category: 'stage-plays'
     }));
-    res.json({ events: stagePlaysWithCategory });
+    res.json({ events: playsWithCategory });
   } catch (error) {
     console.error('Error fetching stage plays:', error);
     res.status(500).json({ error: 'Failed to fetch stage plays' });
@@ -253,45 +254,28 @@ app.get('/api/events/starting-soon', async (req, res) => {
 
 // Import routes
 const eventRoutes = require('./routes/events');
-const { router: authRoutes, requireAuth, requireRole } = require('./routes/auth');
-const attendeeRoutes = require('./routes/attendee');
-const organizerRoutes = require('./routes/organizer');
-const guestRoutes = require('./routes/guest');
+const ticketRoutes = require('./routes/tickets');
+const ticketRoutesNew = require('./routes/ticketRoutes');
+// const authRoutes = require('./routes/auth');
+// const userRoutes = require('./routes/users');
 
 // Use routes
 app.use('/events', eventRoutes);
-app.use('/auth', authRoutes);
-app.use('/attendee', attendeeRoutes);
-app.use('/organizer', organizerRoutes);
-app.use('/guest', guestRoutes);
+app.use('/tickets', ticketRoutes);
+app.use('/tickets', ticketRoutesNew);
+// app.use('/auth', authRoutes);
+// app.use('/users', userRoutes);
 
-// Profile route
-app.get('/profile', requireAuth, async (req, res) => {
-  try {
-    const User = require('./models/User');
-    const user = await User.findById(req.session.user.id);
-    
-    if (!user) {
-      req.flash('error', 'User not found');
-      return res.redirect('/auth/login');
-    }
-    
-    res.render('auth/profile', {
-      title: 'Profile - CursedTicket',
-      user: user
-    });
-  } catch (error) {
-    console.error('Profile error:', error);
-    req.flash('error', 'Failed to load profile');
-    res.redirect('/');
-  }
+// Redirect old my-tickets route to new tickets route
+app.get('/my-tickets', (req, res) => {
+  res.redirect('/tickets/my-tickets');
 });
 
 // 404 handler
 app.use((req, res) => {
   res.status(404).render('404', { 
     title: 'Page Not Found',
-    user: req.session.user 
+    user: req.session ? req.session.user : null
   });
 });
 
@@ -301,6 +285,9 @@ app.use((err, req, res, next) => {
   res.status(500).render('500', { 
     title: 'Server Error',
     user: req.session.user,
+    message: 'Something went wrong on our end. Please try again later.',
+    error: process.env.NODE_ENV === 'development' ? err?.message || 'Unknown error' : undefined
+    user: req.session ? req.session.user : null,
     error: process.env.NODE_ENV === 'development' ? err : {}
   });
 });

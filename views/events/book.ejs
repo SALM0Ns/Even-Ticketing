@@ -296,27 +296,38 @@ function updateBookingSummary() {
 }
 
 // Proceed to payment
-document.getElementById('proceedToPayment').addEventListener('click', function() {
+document.getElementById('proceedToPayment').addEventListener('click', async function() {
     if (selectedSeats.length === 0) {
         alert('Please select at least one seat.');
         return;
     }
-    
-    // Store booking data in sessionStorage for payment page
-    const bookingData = {
-        eventId: '<%= event._id %>',
-        eventName: '<%= event.name %>',
-        date: document.getElementById('dateSelect').value,
-        time: document.getElementById('timeSelect').value,
-        venue: '<%= event.location.name %>',
-        seats: selectedSeats,
-        total: selectedSeats.reduce((sum, seat) => sum + seat.price, 0)
-    };
-    
-    sessionStorage.setItem('bookingData', JSON.stringify(bookingData));
-    
-    // Redirect to payment page (you'll need to create this)
-    window.location.href = '/payment';
+
+    const eventId = '<%= event._id %>';
+    const eventType = '<%= event.category || "Movie" %>';
+    const userId = '<%= typeof user !== "undefined" ? user._id : "670edc8b9db84c5cb34f2a1b" %>'; // mock if no login yet
+    const seats = selectedSeats.map(s => s.id);
+    const price = selectedSeats.reduce((sum, s) => sum + s.price, 0) / seats.length;
+
+    try {
+        const response = await fetch('/tickets/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                eventId,
+                eventType,
+                userId,
+                seats,
+                price
+            })
+        });
+
+        if (!response.ok) throw new Error(await response.text());
+        alert('✅ Tickets successfully created!');
+        window.location.href = `/tickets/my-tickets/${eventId}`;
+    } catch (error) {
+        console.error('❌ Purchase failed:', error);
+        alert('❌ Purchase failed: ' + error.message);
+    }
 });
 </script>
 

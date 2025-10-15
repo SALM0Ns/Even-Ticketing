@@ -16,6 +16,28 @@ const movieSchema = new mongoose.Schema({
         type: String,
         default: '/images/default-movie.jpg'
     },
+    poster: {
+        type: String,
+        default: '/images/default-movie-poster.jpg'
+    },
+    wallpaper: {
+        type: String,
+        default: '/images/default-movie-wallpaper.jpg'
+    },
+    cloudinary: {
+        poster: {
+            url: String,
+            publicId: String,
+            cloudId: String,
+            publicUrl: String
+        },
+        wallpaper: {
+            url: String,
+            publicId: String,
+            cloudId: String,
+            publicUrl: String
+        }
+    },
     date: {
         type: Date,
         required: [true, 'Show date is required']
@@ -23,6 +45,39 @@ const movieSchema = new mongoose.Schema({
     endDate: {
         type: Date,
         required: [true, 'End date is required']
+    },
+    showDates: [{
+        date: {
+            type: Date,
+            required: true
+        },
+        seating: {
+            totalSeats: {
+                type: Number,
+                default: 200
+            },
+            takenSeats: [{
+                type: Number
+            }],
+            availableSeats: {
+                type: Number,
+                default: 200
+            }
+        }
+    }],
+    // Legacy seating for backward compatibility
+    seating: {
+        totalSeats: {
+            type: Number,
+            default: 200
+        },
+        takenSeats: [{
+            type: Number
+        }],
+        availableSeats: {
+            type: Number,
+            default: 200
+        }
     },
     showtimes: [{
         time: {

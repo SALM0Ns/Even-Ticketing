@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %> - CursedTicket</title>
+    <title><%= typeof title !== 'undefined' ? title : 'CursedTicket' %></title>
+    <meta name="description" content="<%= typeof description !== 'undefined' ? description : 'CursedTicket Event System' %>">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -155,21 +156,21 @@
     </div>
 
     <!-- Flash Messages -->
-    <% if (success && success.length > 0) { %>
+    <% if (typeof success !== 'undefined' && success && success.length > 0) { %>
         <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
             <%= success %>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <% } %>
     
-    <% if (error && error.length > 0) { %>
+    <% if (typeof error !== 'undefined' && error && error.length > 0) { %>
         <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
             <%= error %>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <% } %>
     
-    <% if (info && info.length > 0) { %>
+    <% if (typeof info !== 'undefined' && info && info.length > 0) { %>
         <div class="alert alert-info alert-dismissible fade show m-3" role="alert">
             <%= info %>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>

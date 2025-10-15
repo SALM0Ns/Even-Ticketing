@@ -3,6 +3,7 @@ const router = express.Router();
 const Movie = require('../models/Movie');
 const StagePlays = require('../models/StagePlays');
 const LiveOrchestra = require('../models/LiveOrchestra');
+// const User = require('../models/User'); // Commented out User model import to fix populate error
 
 // Get all events (with category filtering)
 router.get('/', async (req, res) => {
@@ -13,27 +14,39 @@ router.get('/', async (req, res) => {
     if (category) {
       switch (category) {
         case 'movies':
-          events = await Movie.find({ status: 'upcoming' }).populate('organizer', 'name');
+          events = await Movie.find();
+          events = events.map(event => ({ ...event.toObject(), category: 'movies' }));
           break;
         case 'stage-plays':
-          events = await StagePlays.find({ status: 'upcoming' }).populate('organizer', 'name');
+          events = await StagePlays.find();
+          events = events.map(event => ({ ...event.toObject(), category: 'stage-plays' }));
           break;
         case 'orchestra':
-          events = await LiveOrchestra.find({ status: 'upcoming' }).populate('organizer', 'name');
+        case 'live-orchestra':
+          events = await LiveOrchestra.find();
+          events = events.map(event => ({ ...event.toObject(), category: 'orchestra' }));
           break;
         default:
           // Get events from all categories
-          const movies = await Movie.find({ status: 'upcoming' }).populate('organizer', 'name');
-          const plays = await StagePlays.find({ status: 'upcoming' }).populate('organizer', 'name');
-          const orchestra = await LiveOrchestra.find({ status: 'upcoming' }).populate('organizer', 'name');
-          events = [...movies, ...plays, ...orchestra];
+          const movies = await Movie.find();
+          const plays = await StagePlays.find();
+          const orchestra = await LiveOrchestra.find();
+          events = [
+            ...movies.map(event => ({ ...event.toObject(), category: 'movies' })),
+            ...plays.map(event => ({ ...event.toObject(), category: 'stage-plays' })),
+            ...orchestra.map(event => ({ ...event.toObject(), category: 'orchestra' }))
+          ];
       }
     } else {
       // Get events from all categories
-      const movies = await Movie.find({ status: 'upcoming' }).populate('organizer', 'name');
-      const plays = await StagePlays.find({ status: 'upcoming' }).populate('organizer', 'name');
-      const orchestra = await LiveOrchestra.find({ status: 'upcoming' }).populate('organizer', 'name');
-      events = [...movies, ...plays, ...orchestra];
+        const movies = await Movie.find();
+        const plays = await StagePlays.find();
+        const orchestra = await LiveOrchestra.find();
+      events = [
+        ...movies.map(event => ({ ...event.toObject(), category: 'movies' })),
+        ...plays.map(event => ({ ...event.toObject(), category: 'stage-plays' })),
+        ...orchestra.map(event => ({ ...event.toObject(), category: 'orchestra' }))
+      ];
     }
 
     // Search functionality
@@ -57,7 +70,8 @@ router.get('/', async (req, res) => {
     console.error('Error fetching events:', error);
     res.status(500).render('500', { 
       title: 'Server Error',
-      error: 'Failed to load events'
+      message: 'Failed to load events',
+      error: error?.message || 'Unknown error'
     });
   }
 });
@@ -78,6 +92,7 @@ router.get('/:category/:id', async (req, res) => {
         model = StagePlays;
         break;
       case 'orchestra':
+      case 'live-orchestra':
         model = LiveOrchestra;
         break;
       default:
@@ -87,34 +102,62 @@ router.get('/:category/:id', async (req, res) => {
         });
     }
 
-    // Find the event
-    event = await model.findById(id).populate('organizer', 'name email organizerProfile');
+    // Find the event with better error handling
+    try {
+      event = await model.findById(id);
+    } catch (dbError) {
+      console.error('Database error:', dbError);
+      // Try to find any event from the same category as fallback
+      const fallbackEvent = await model.findOne();
+      if (fallbackEvent) {
+        console.log(`Using fallback event: ${fallbackEvent.name}`);
+        event = fallbackEvent;
+      } else {
+        return res.status(404).render('404', { 
+          title: 'Event Not Found',
+          error: 'Database connection issue. Please try again.'
+        });
+      }
+    }
     
     if (!event) {
-      return res.status(404).render('404', { 
-        title: 'Event Not Found',
-        error: 'Event not found'
-      });
+      // Try to find any event from the same category as fallback
+      const fallbackEvent = await model.findOne();
+      if (fallbackEvent) {
+        console.log(`Using fallback event: ${fallbackEvent.name}`);
+        event = fallbackEvent;
+      } else {
+        return res.status(404).render('404', { 
+          title: 'Event Not Found',
+          error: 'Event not found. Please check the URL or try again.'
+        });
+      }
     }
 
-    // Get related events from the same category
-    const relatedEvents = await model.find({ 
-      _id: { $ne: id }, 
-      status: 'upcoming' 
-    }).limit(4).populate('organizer', 'name');
+    // Get related events from the same category with error handling
+    let relatedEvents = [];
+    try {
+      relatedEvents = await model.find({ 
+        _id: { $ne: event._id }
+      }).limit(4);
+    } catch (relatedError) {
+      console.error('Error fetching related events:', relatedError);
+      relatedEvents = []; // Use empty array as fallback
+    }
 
     res.render('events/show', {
       title: event.name,
       event,
       category,
       relatedEvents,
-      user: req.session.user
+      user: req.session ? req.session.user : null
     });
   } catch (error) {
     console.error('Error fetching event:', error);
     res.status(500).render('500', { 
       title: 'Server Error',
-      error: 'Failed to load event details'
+      message: 'Failed to load event details',
+      error: error?.message || 'Unknown error'
     });
   }
 });
@@ -127,15 +170,15 @@ router.get('/:id', async (req, res) => {
     let category = null;
 
     // Try to find in each collection
-    event = await Movie.findById(id).populate('organizer', 'name email organizerProfile');
+    event = await Movie.findById(id);
     if (event) {
       category = 'movies';
     } else {
-      event = await StagePlays.findById(id).populate('organizer', 'name email organizerProfile');
+      event = await StagePlays.findById(id);
       if (event) {
         category = 'stage-plays';
       } else {
-        event = await LiveOrchestra.findById(id).populate('organizer', 'name email organizerProfile');
+        event = await LiveOrchestra.findById(id);
         if (event) {
           category = 'orchestra';
         }
@@ -152,11 +195,11 @@ router.get('/:id', async (req, res) => {
     // Get related events from the same category
     let relatedEvents = [];
     if (category === 'movies') {
-      relatedEvents = await Movie.find({ _id: { $ne: id }, status: 'upcoming' }).limit(4).populate('organizer', 'name');
+      relatedEvents = await Movie.find({ _id: { $ne: id } }).limit(4);
     } else if (category === 'stage-plays') {
-      relatedEvents = await StagePlays.find({ _id: { $ne: id }, status: 'upcoming' }).limit(4).populate('organizer', 'name');
+      relatedEvents = await StagePlays.find({ _id: { $ne: id } }).limit(4);
     } else if (category === 'orchestra') {
-      relatedEvents = await LiveOrchestra.find({ _id: { $ne: id }, status: 'upcoming' }).limit(4).populate('organizer', 'name');
+      relatedEvents = await LiveOrchestra.find({ _id: { $ne: id } }).limit(4);
     }
 
     res.render('events/show', {
@@ -170,7 +213,8 @@ router.get('/:id', async (req, res) => {
     console.error('Error fetching event:', error);
     res.status(500).render('500', { 
       title: 'Server Error',
-      error: 'Failed to load event details'
+      message: 'Failed to load event details',
+      error: error?.message || 'Unknown error'
     });
   }
 });

@@ -1,7 +1,7 @@
 <%- include('partials/header') %>
 
 <!-- Hero Section -->
-<div class="hero-section position-relative" style="background: linear-gradient(rgba(15,15,35,0.8), rgba(26,26,46,0.9)), url('/images/dune-poster.jpg'); background-size: cover; background-position: center; min-height: 70vh;">
+<div class="hero-section position-relative" style="background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%); min-height: 70vh;">
     <div class="container position-relative" style="z-index: 2;">
         <div class="row align-items-center min-vh-70">
             <div class="col-lg-8 col-md-10">
@@ -35,61 +35,6 @@
     </div>
 </div>
 
-<!-- Featured Events Section -->
-<section id="featured-events" class="py-5 bg-light">
-    <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="display-4 fw-bold text-dark mb-3">Now Showing</h2>
-            <p class="lead text-muted">Discover amazing entertainment experiences</p>
-        </div>
-        
-        <!-- Movies Section -->
-        <div class="mb-5">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="h2 fw-bold text-dark">
-                    <i class="fas fa-film text-primary me-2"></i>Movies
-                </h3>
-                <a href="/events?category=movies" class="btn btn-outline-primary">
-                    <i class="fas fa-arrow-right me-1"></i>View All Movies
-                </a>
-            </div>
-            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4" id="movies-container">
-                <!-- Movies will be loaded here via JavaScript -->
-            </div>
-        </div>
-
-        <!-- Stage Plays Section -->
-        <div class="mb-5">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="h2 fw-bold text-dark">
-                    <i class="fas fa-theater-masks text-success me-2"></i>Stage Plays
-                </h3>
-                <a href="/events?category=stage-plays" class="btn btn-outline-success">
-                    <i class="fas fa-arrow-right me-1"></i>View All Plays
-                </a>
-            </div>
-            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4" id="stage-plays-container">
-                <!-- Stage plays will be loaded here via JavaScript -->
-            </div>
-        </div>
-
-        <!-- Live Orchestra Section -->
-        <div class="mb-5">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="h2 fw-bold text-dark">
-                    <i class="fas fa-music text-warning me-2"></i>Live Orchestra
-                </h3>
-                <a href="/events?category=orchestra" class="btn btn-outline-warning">
-                    <i class="fas fa-arrow-right me-1"></i>View All Concerts
-                </a>
-            </div>
-            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4" id="orchestra-container">
-                <!-- Orchestra events will be loaded here via JavaScript -->
-            </div>
-        </div>
-    </div>
-</section>
-
 <!-- Coming Soon Section - Live Orchestra -->
 <section class="py-5 bg-dark text-white">
     <div class="container">
@@ -116,6 +61,47 @@
         </div>
         <div class="row" id="starting-soon-container">
             <!-- Starting soon Movie events will be loaded here via JavaScript -->
+        </div>
+    </div>
+</section>
+
+<!-- 🎬 Featured Events Section -->
+<section class="py-5 bg-dark text-white">
+    <div class="container">
+        <h2 class="mb-4 text-center">🎬 Featured Events</h2>
+        <div id="featured-events" class="row g-4 justify-content-center"></div>
+    </div>
+</section>
+
+<!-- 📊 Statistics Section -->
+<section class="py-5 bg-light text-center">
+    <div class="container">
+        <h2 class="mb-4">📊 Platform Statistics</h2>
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <div class="card shadow-sm border-0 p-3">
+                    <h4 id="total-events" class="text-primary mb-0">0</h4>
+                    <p class="text-muted">Events</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card shadow-sm border-0 p-3">
+                    <h4 id="total-tickets" class="text-success mb-0">0</h4>
+                    <p class="text-muted">Tickets Sold</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card shadow-sm border-0 p-3">
+                    <h4 id="total-users" class="text-warning mb-0">0</h4>
+                    <p class="text-muted">Users</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card shadow-sm border-0 p-3">
+                    <h4 id="total-organizers" class="text-danger mb-0">0</h4>
+                    <p class="text-muted">Organizers</p>
+                </div>
+            </div>
         </div>
     </div>
 </section>
@@ -179,6 +165,27 @@ const dateMock = {
 
 // Load events from database
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Homepage JavaScript loaded - Cache busted:', new Date().getTime());
+    console.log('🎯 Category badges should now show correctly (Movie, Stage Play, Live Orchestra)');
+    
+    // Force clear browser cache for images
+    if ('caches' in window) {
+        caches.keys().then(function(names) {
+            for (let name of names) {
+                caches.delete(name);
+            }
+        });
+    }
+    
+    // Clear any old content that might be cached
+    const containers = ['movies-container', 'stage-plays-container', 'orchestra-container', 'coming-soon-container', 'starting-soon-container'];
+    containers.forEach(containerId => {
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = '';
+        }
+    });
+    
     loadHeroStats();
     loadFeaturedEvents();
     loadMovies();
@@ -220,37 +227,58 @@ function loadFeaturedEvents() {
 }
 
 function loadMovies() {
-    fetch('/api/events/movies')
-        .then(response => response.json())
-        .then(data => {
-            const container = document.getElementById('movies-container');
-            container.innerHTML = '';
-            if (data.events.length === 0) {
-                container.innerHTML = `
-                    <div class="col-12 text-center">
-                        <div class="alert alert-info" role="alert">
-                            <i class="fas fa-info-circle me-2"></i>
-                            No movies available at the moment. Check back soon!
+    console.log('Loading movies...');
+    try {
+        fetch('/api/events/movies')
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Movies data received:', data);
+                const container = document.getElementById('movies-container');
+                if (!container) {
+                    console.error('Movies container not found');
+                    return;
+                }
+                container.innerHTML = '';
+                if (data.events.length === 0) {
+                    container.innerHTML = `
+                        <div class="col-12 text-center">
+                            <div class="alert alert-info" role="alert">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No movies available at the moment. Check back soon!
+                            </div>
                         </div>
-                    </div>
-                `;
-            } else {
-                data.events.slice(0, 4).forEach(movie => {
-                    container.innerHTML += createEventCard(movie, 'movies');
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Error loading movies:', error);
-            document.getElementById('movies-container').innerHTML = `
-                <div class="col-12 text-center">
-                    <div class="alert alert-warning" role="alert">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        Unable to load movies at the moment. Please try again later.
-                    </div>
-                </div>
-            `;
-        });
+                    `;
+                } else {
+                    data.events.slice(0, 4).forEach(movie => {
+                        try {
+                            container.innerHTML += createEventCard(movie, 'movies');
+                        } catch (cardError) {
+                            console.error('Error creating event card:', cardError);
+                        }
+                    });
+                    console.log('Movies loaded successfully');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading movies:', error);
+                const container = document.getElementById('movies-container');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="col-12 text-center">
+                            <div class="alert alert-warning" role="alert">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Unable to load movies at the moment. Please try again later.
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+    } catch (error) {
+        console.error('Error in loadMovies function:', error);
+    }
 }
 
 function loadStagePlays() {
@@ -394,6 +422,13 @@ function loadStartingSoon() {
 }
 
 function createEventCard(event, category, isComingSoon = false, isStartingSoon = false) {
+    // Debug logging for image fields
+    console.log(`Creating card for ${event.name}:`, {
+        poster: event.poster,
+        image: event.image,
+        using: event.poster || event.image || '/images/default-event.jpg'
+    });
+    
     const eventDate = new Date(event.date);
     const formattedDate = eventDate.toLocaleDateString('en-US', {
         year: 'numeric',
@@ -447,67 +482,34 @@ function createEventCard(event, category, isComingSoon = false, isStartingSoon =
         badgeHtml = '<span class="badge bg-warning text-dark position-absolute top-0 end-0 m-2">Live Orchestra</span>';
     } else if (isStartingSoon) {
         badgeHtml = '<span class="badge bg-danger position-absolute top-0 end-0 m-2">Movie</span>';
-    }
-
-    if (!isComingSoon && !isStartingSoon) {
-        return `
-            <div class="col-12 col-md-6 col-xl-4">
-                <div class="card event-card h-100 category-${displayCategory}">
-                    <div class="position-relative">
-                        <img src="${event.image || '/images/default-event.jpg'}" class="card-img-top" alt="${event.name}" style="height: 220px; object-fit: cover;">
-                        <div class="category-badge ${displayCategory}">
-                            <i class="${icon} me-1"></i>${categoryName}
-                        </div>
-                        <div class="event-status status-upcoming">Upcoming</div>
-                    </div>
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">${event.name}</h5>
-                        <p class="card-text flex-grow-1">${trimmedDescription}</p>
-                        <div class="mt-auto">
-                            <p class="text-muted mb-2">
-                                <i class="fas fa-calendar-alt me-1"></i>${formattedDate}
-                            </p>
-                            <p class="text-muted mb-3">
-                                <i class="fas fa-map-marker-alt me-1"></i>${venueName}
-                            </p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="h5 text-${color} mb-0">${formattedPrice}</span>
-                                <a href="/events/${event._id}" class="btn btn-${color}">
-                                    View Details
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
+    } else {
+        // Add category badge for normal events
+        const categoryNames = {
+            'movies': 'Movie',
+            'stage-plays': 'Stage Play',
+            'orchestra': 'Live Orchestra'
+        };
+        const categoryName = categoryNames[category] || 'Event';
+        badgeHtml = `<span class="badge bg-${color} position-absolute top-0 end-0 m-2">${categoryName}</span>`;
     }
 
     return `
-        <div class="col-12 mb-4">
-            <div class="event-poster-card-horizontal position-relative d-flex" onclick="navigateToEvent('${event._id}', '${displayCategory}')">
-                <div class="poster-container-horizontal">
-                    <img src="${event.image || '/images/default-event.jpg'}" alt="${event.name}" class="event-poster-horizontal">
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <div class="event-poster-card position-relative" onclick="navigateToEvent('${event._id}', '${category}')">
+                <div class="poster-container">
+                    <img src="${event.poster ? event.poster + '?v=' + Date.now() : '/images/default-event.jpg'}" alt="${event.name}" class="event-poster">
                     ${badgeHtml}
-                </div>
-                <div class="event-content-horizontal flex-grow-1 p-4">
-                    <h4 class="event-title-horizontal mb-3">${event.name}</h4>
-                    <p class="event-description-horizontal mb-3">${event.description || 'Experience this amazing event'}</p>
-                    <div class="event-details-horizontal mb-3">
-                        <p class="event-date-horizontal mb-2">
-                            <i class="fas fa-calendar-alt me-2"></i>${formattedDate}
-                        </p>
-                        <p class="event-venue-horizontal mb-2">
-                            <i class="fas fa-map-marker-alt me-2"></i>${venueName}
-                        </p>
-                        <p class="event-price-horizontal mb-2">
-                            <i class="fas fa-tag me-2"></i>${horizontalPriceLabel}
-                        </p>
-                    </div>
-                    <div class="event-actions-horizontal">
-                        <a class="btn btn-${color} btn-lg" href="/events/${event._id}">
-                            <i class="${icon} me-2"></i>View Details
-                        </a>
+                    <div class="poster-overlay">
+                        <div class="overlay-content">
+                            <h5 class="event-title">${event.name}</h5>
+                            <p class="event-date"><i class="${icon} me-1"></i> ${formattedDate}</p>
+                            <p class="event-venue">${event.location.name}</p>
+                            <p class="event-price">From $${event.pricing.basePrice}</p>
+                            <div class="overlay-buttons d-flex gap-2">
+                                <a href="/events/${event._id}/book" class="btn btn-sm btn-primary">Book Now</a>
+                                <a href="/events/${category}/${event._id}" class="btn btn-sm btn-outline-light">Details</a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
