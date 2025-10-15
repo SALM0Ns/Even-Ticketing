@@ -24,6 +24,39 @@ const movieSchema = new mongoose.Schema({
         type: Date,
         required: [true, 'End date is required']
     },
+    showDates: [{
+        date: {
+            type: Date,
+            required: true
+        },
+        seating: {
+            totalSeats: {
+                type: Number,
+                default: 200
+            },
+            takenSeats: [{
+                type: Number
+            }],
+            availableSeats: {
+                type: Number,
+                default: 200
+            }
+        }
+    }],
+    // Legacy seating for backward compatibility
+    seating: {
+        totalSeats: {
+            type: Number,
+            default: 200
+        },
+        takenSeats: [{
+            type: Number
+        }],
+        availableSeats: {
+            type: Number,
+            default: 200
+        }
+    },
     showtimes: [{
         time: {
             type: String,

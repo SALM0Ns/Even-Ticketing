@@ -323,8 +323,8 @@
                         </div>
                     <% } %>
                     <hr>
-                    <a href="#" class="btn btn-primary w-100">
-                        <i class="fas fa-shopping-cart me-2"></i>Buy Tickets Now
+                    <a href="#seat-selection" class="btn btn-primary w-100" onclick="scrollToSeatSelection()">
+                        <i class="fas fa-shopping-cart me-2"></i>Select Seats
                     </a>
                 </div>
             </div>
@@ -384,7 +384,104 @@
     </div>
 </div>
 
-<script>
+<!-- Seat Selection Section -->
+<section id="seat-selection" class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="text-center mb-5">
+                    <i class="fas fa-chair me-2"></i>Select Your Seats
+                </h2>
+                
+                <!-- Show Date Selection -->
+                <div class="row mb-4">
+                    <div class="col-md-6 mx-auto">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-calendar-alt me-2"></i>Select Show Date
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row" id="show-dates-container">
+                                    <!-- Show dates will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seating Chart -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-theater-masks me-2"></i>Seating Chart
+                                </h5>
+                                <div class="seat-legend">
+                                    <span class="legend-item">
+                                        <span class="seat-legend-available"></span> Available
+                                    </span>
+                                    <span class="legend-item">
+                                        <span class="seat-legend-selected"></span> Selected
+                                    </span>
+                                    <span class="legend-item">
+                                        <span class="seat-legend-taken"></span> Taken
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <!-- Stage indicator now added inside seating container -->
+                                
+                                <!-- Seating Layout -->
+                                <div class="seating-container" id="seating-container">
+                                    <!-- Seats will be generated here -->
+                                </div>
+                                
+                                <!-- Selected Seats Summary -->
+                                <div class="selected-seats-summary mt-4" id="selected-seats-summary" style="display: none;">
+                                    <div class="card bg-primary text-white">
+                                        <div class="card-body">
+                                            <h6 class="card-title">
+                                                <i class="fas fa-ticket-alt me-2"></i>Selected Seats
+                                            </h6>
+                                            <div id="selected-seats-list"></div>
+                                            <div class="mt-3">
+                                                <strong>Total: $<span id="total-price">0</span></strong>
+                                            </div>
+                                            <button class="btn btn-light btn-sm mt-2" onclick="proceedToCheckout()">
+                                                <i class="fas fa-credit-card me-1"></i>Proceed to Checkout
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+    <script>
+// Cache busting - force reload of updated content
+console.log('Theater Layout Updated:', new Date().toISOString());
+
+// Event data from server
+const eventData = {
+    id: '<%= event._id %>',
+    name: '<%= event.name %>',
+    showDates: <%- JSON.stringify(event.showDates || [event.date]) %>,
+    seating: <%- JSON.stringify(event.seating || {totalSeats: 200, takenSeats: [], availableSeats: 200}) %>,
+    pricing: <%- JSON.stringify(event.pricing) %>,
+    category: '<%= category %>'
+};
+
+let selectedSeats = [];
+let selectedShowDate = null;
+
 function shareEvent() {
     if (navigator.share) {
         navigator.share({
@@ -398,6 +495,627 @@ function shareEvent() {
             alert('Event link copied to clipboard!');
         });
     }
+}
+
+function scrollToSeatSelection() {
+    document.getElementById('seat-selection').scrollIntoView({ 
+        behavior: 'smooth' 
+    });
+}
+
+// Initialize seat selection when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadShowDates();
+    loadSeatingChart();
+});
+
+function loadShowDates() {
+    const container = document.getElementById('show-dates-container');
+    container.innerHTML = '';
+    
+    eventData.showDates.forEach((date, index) => {
+        const showDate = new Date(date);
+        const dateCard = document.createElement('div');
+        dateCard.className = 'col-md-4 mb-2';
+        dateCard.innerHTML = `
+            <div class="card show-date-card" onclick="selectShowDate('${date}', ${index})">
+                <div class="card-body text-center p-2">
+                    <div class="fw-bold">${showDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+                    <small class="text-muted">${showDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</small>
+                </div>
+            </div>
+        `;
+        container.appendChild(dateCard);
+    });
+    
+    // Select first date by default
+    if (eventData.showDates.length > 0) {
+        selectShowDate(eventData.showDates[0], 0);
+    }
+}
+
+function selectShowDate(date, index) {
+    selectedShowDate = date;
+    
+    // Update UI
+    document.querySelectorAll('.show-date-card').forEach(card => {
+        card.classList.remove('border-primary', 'bg-primary', 'text-white');
+        card.classList.add('border-light');
+    });
+    
+    const selectedCard = document.querySelectorAll('.show-date-card')[index];
+    selectedCard.classList.add('border-primary', 'bg-primary', 'text-white');
+    selectedCard.classList.remove('border-light');
+    
+    // Clear previous selections
+    selectedSeats = [];
+    updateSelectedSeatsSummary();
+    
+    // Reload seating chart for this date
+    loadSeatingChart();
+}
+
+function loadSeatingChart() {
+    const container = document.getElementById('seating-container');
+    container.innerHTML = '';
+    
+    // Get seating data for the selected show date
+    const selectedShowDate = document.querySelector('.show-date-card.selected');
+    let totalSeats, takenSeats;
+    
+    if (selectedShowDate && eventData.showDates && eventData.showDates.length > 0) {
+        // Use individual show seating data
+        const showDateValue = selectedShowDate.dataset.date;
+        const selectedShow = eventData.showDates.find(show => 
+            new Date(show.date).toISOString() === new Date(showDateValue).toISOString()
+        );
+        
+        if (selectedShow && selectedShow.seating) {
+            totalSeats = selectedShow.seating.totalSeats;
+            takenSeats = selectedShow.seating.takenSeats || [];
+        } else {
+            // Fallback to legacy seating data
+            totalSeats = eventData.seating.totalSeats;
+            takenSeats = eventData.seating.takenSeats || [];
+        }
+    } else {
+        // Fallback to legacy seating data
+        totalSeats = eventData.seating.totalSeats;
+        takenSeats = eventData.seating.takenSeats || [];
+    }
+    
+    // Add stage indicator inside the seating container
+    const stageIndicator = document.createElement('div');
+    stageIndicator.className = 'screen-stage';
+    stageIndicator.innerHTML = '<i class="fas fa-tv me-2"></i>Screen / Stage';
+    container.appendChild(stageIndicator);
+    
+    // Check event type to determine layout
+    const isTheaterEvent = eventData.category === 'StagePlays' || 
+                          eventData.category === 'stage-plays' ||
+                          eventData.category === 'LiveOrchestra' || 
+                          eventData.category === 'live-orchestra' ||
+                          eventData.category === 'orchestra';
+    
+    if (isTheaterEvent) {
+        createTheaterLayout(container, totalSeats, takenSeats);
+    } else {
+        createCinemaLayout(container, totalSeats, takenSeats);
+    }
+}
+
+function createCinemaLayout(container, totalSeats, takenSeats) {
+    // Cinema layout configuration - 18 seats per row with VIP sections
+    const cinemaConfig = {
+        seatsPerRow: 18, // 4 left + 5 middle-left + 5 middle-right + 4 right
+        totalRows: Math.ceil(totalSeats / 18),
+        aisleAfterRow: 4, // Main aisle after row 4
+        vipRows: [14, 15], // Rows N and O are VIP (14th and 15th rows)
+        leftSectionSeats: 4,
+        middleLeftSectionSeats: 5,
+        middleRightSectionSeats: 5,
+        rightSectionSeats: 4
+    };
+    
+    // Create cinema seating layout
+    for (let row = 1; row <= cinemaConfig.totalRows; row++) {
+        const rowDiv = document.createElement('div');
+        const isVipRow = cinemaConfig.vipRows.includes(row);
+        rowDiv.className = isVipRow ? 'theater-row vip-row' : 'theater-row';
+        
+        // Row letter (A-O)
+        const rowLabel = document.createElement('div');
+        rowLabel.className = isVipRow ? 'row-number vip-row-number' : 'row-number';
+        rowLabel.textContent = String.fromCharCode(64 + row); // Convert 1-15 to A-O
+        if (isVipRow) {
+            rowLabel.innerHTML = `${String.fromCharCode(64 + row)}<br><small>VIP</small>`;
+        }
+        rowDiv.appendChild(rowLabel);
+        
+        // Left section (4 seats)
+        const leftSection = document.createElement('div');
+        leftSection.className = 'seating-section';
+        
+        for (let seat = 1; seat <= cinemaConfig.leftSectionSeats; seat++) {
+            const seatNumber = (row - 1) * cinemaConfig.seatsPerRow + seat;
+            if (seatNumber <= totalSeats) {
+                const seatElement = createSeatElement(seatNumber, takenSeats, isVipRow);
+                leftSection.appendChild(seatElement);
+            }
+        }
+        rowDiv.appendChild(leftSection);
+        
+        // Left aisle
+        const leftAisle = document.createElement('div');
+        leftAisle.className = 'center-aisle';
+        rowDiv.appendChild(leftAisle);
+        
+        // Middle-left section (5 seats)
+        const middleLeftSection = document.createElement('div');
+        middleLeftSection.className = 'seating-section';
+        
+        for (let seat = 1; seat <= cinemaConfig.middleLeftSectionSeats; seat++) {
+            const seatNumber = (row - 1) * cinemaConfig.seatsPerRow + cinemaConfig.leftSectionSeats + seat;
+            if (seatNumber <= totalSeats) {
+                const seatElement = createSeatElement(seatNumber, takenSeats, isVipRow);
+                middleLeftSection.appendChild(seatElement);
+            }
+        }
+        rowDiv.appendChild(middleLeftSection);
+        
+        // Center aisle
+        const centerAisle = document.createElement('div');
+        centerAisle.className = 'center-aisle';
+        rowDiv.appendChild(centerAisle);
+        
+        // Middle-right section (5 seats)
+        const middleRightSection = document.createElement('div');
+        middleRightSection.className = 'seating-section';
+        
+        for (let seat = 1; seat <= cinemaConfig.middleRightSectionSeats; seat++) {
+            const seatNumber = (row - 1) * cinemaConfig.seatsPerRow + cinemaConfig.leftSectionSeats + cinemaConfig.middleLeftSectionSeats + seat;
+            if (seatNumber <= totalSeats) {
+                const seatElement = createSeatElement(seatNumber, takenSeats, isVipRow);
+                middleRightSection.appendChild(seatElement);
+            }
+        }
+        rowDiv.appendChild(middleRightSection);
+        
+        // Right aisle
+        const rightAisle = document.createElement('div');
+        rightAisle.className = 'center-aisle';
+        rowDiv.appendChild(rightAisle);
+        
+        // Right section (4 seats)
+        const rightSection = document.createElement('div');
+        rightSection.className = 'seating-section';
+        
+        for (let seat = 1; seat <= cinemaConfig.rightSectionSeats; seat++) {
+            const seatNumber = (row - 1) * cinemaConfig.seatsPerRow + cinemaConfig.leftSectionSeats + cinemaConfig.middleLeftSectionSeats + cinemaConfig.middleRightSectionSeats + seat;
+            if (seatNumber <= totalSeats) {
+                const seatElement = createSeatElement(seatNumber, takenSeats, isVipRow);
+                rightSection.appendChild(seatElement);
+            }
+        }
+        rowDiv.appendChild(rightSection);
+        
+        container.appendChild(rowDiv);
+        
+        // Add main walkway after row 4
+        if (row === cinemaConfig.aisleAfterRow) {
+            const walkway = document.createElement('div');
+            walkway.className = 'main-walkway';
+            walkway.innerHTML = '<div class="walkway-label">Main Walkway</div>';
+            container.appendChild(walkway);
+        }
+    }
+}
+
+function createTheaterLayout(container, totalSeats, takenSeats) {
+    // Multi-level theater layout configuration
+    const theaterConfig = {
+        // Stage area (red)
+        stage: {
+            width: '80%',
+            height: '60px',
+            color: '#e74c3c'
+        },
+        // 1st Floor Seats (yellow)
+        firstFloor: {
+            rows: 8,
+            seatsPerRow: [6, 8, 10, 12, 14, 12, 10, 8],
+            section: '1st Floor'
+        },
+        // 2nd Floor Side Balconies (blue)
+        secondFloorSides: {
+            left: {
+                rows: 6,
+                seatsPerRow: 4,
+                section: '2nd Floor Left'
+            },
+            right: {
+                rows: 6,
+                seatsPerRow: 4,
+                section: '2nd Floor Right'
+            }
+        },
+        // 2nd Floor Rear (green)
+        secondFloorRear: {
+            rows: 5,
+            seatsPerRow: 16,
+            section: '2nd Floor Rear'
+        }
+    };
+    
+            // Stage area removed - seats will be centered
+    
+    // Create horizontal layout container
+    const horizontalLayoutDiv = document.createElement('div');
+    horizontalLayoutDiv.className = 'second-floor-sides';
+
+    // Left balcony
+    const leftBalcony = createBalconySection('left', theaterConfig.secondFloorSides.left, takenSeats, '2nd-floor-left');
+    horizontalLayoutDiv.appendChild(leftBalcony);
+
+    // Main 1st floor section (moved to center)
+    const firstFloorDiv = document.createElement('div');
+    firstFloorDiv.className = 'first-floor-section';
+    
+    for (let row = 0; row < theaterConfig.firstFloor.rows; row++) {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'theater-row first-floor-row';
+
+        // Row letter
+        const rowLetter = document.createElement('div');
+        rowLetter.className = 'row-number theater-row-number';
+        rowLetter.textContent = String.fromCharCode(65 + row); // A, B, C, D, etc.
+        rowDiv.appendChild(rowLetter);
+
+        // Seats for this row
+        const seatsInRow = theaterConfig.firstFloor.seatsPerRow[row];
+        for (let seat = 1; seat <= seatsInRow; seat++) {
+            const seatNumber = (row * 20) + seat + 100;
+            const seatElement = createTheaterSeatElement(seatNumber, takenSeats, 'first-floor');
+            rowDiv.appendChild(seatElement);
+        }
+
+        firstFloorDiv.appendChild(rowDiv);
+    }
+    horizontalLayoutDiv.appendChild(firstFloorDiv);
+
+    // Right balcony
+    const rightBalcony = createBalconySection('right', theaterConfig.secondFloorSides.right, takenSeats, '2nd-floor-right');
+    horizontalLayoutDiv.appendChild(rightBalcony);
+
+    container.appendChild(horizontalLayoutDiv);
+    
+    // Create 2nd Floor Rear
+    const secondFloorRearDiv = document.createElement('div');
+    secondFloorRearDiv.className = 'second-floor-rear';
+    
+    for (let row = 0; row < theaterConfig.secondFloorRear.rows; row++) {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'theater-row second-floor-row';
+        
+        // Row letter
+        const rowLetter = document.createElement('div');
+        rowLetter.className = 'row-number theater-row-number';
+        rowLetter.textContent = String.fromCharCode(65 + row); // A, B, C, D, etc.
+        rowDiv.appendChild(rowLetter);
+        
+        // Seats for this row
+        for (let seat = 1; seat <= theaterConfig.secondFloorRear.seatsPerRow; seat++) {
+            const seatNumber = (row * 20) + seat + 500;
+            const seatElement = createTheaterSeatElement(seatNumber, takenSeats, 'second-floor-rear');
+            rowDiv.appendChild(seatElement);
+        }
+        
+        secondFloorRearDiv.appendChild(rowDiv);
+    }
+    container.appendChild(secondFloorRearDiv);
+    
+    // Add legend
+    const legendDiv = document.createElement('div');
+    legendDiv.className = 'theater-legend';
+    legendDiv.innerHTML = `
+        <div class="legend-item main-floor">
+            <div class="legend-color main-floor"></div>
+            <span>Main Floor</span>
+        </div>
+        <div class="legend-item left-balcony">
+            <div class="legend-color left-balcony"></div>
+            <span>Left Balcony</span>
+        </div>
+        <div class="legend-item right-balcony">
+            <div class="legend-color right-balcony"></div>
+            <span>Right Balcony</span>
+        </div>
+        <div class="legend-item second-floor-rear">
+            <div class="legend-color second-floor-rear"></div>
+            <span>2nd Floor Rear</span>
+        </div>
+    `;
+    container.appendChild(legendDiv);
+}
+
+function createBalconySection(side, config, takenSeats, sectionType) {
+    const sectionDiv = document.createElement('div');
+    sectionDiv.className = `balcony-section ${side}-balcony`;
+    
+    for (let row = 0; row < config.rows; row++) {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'theater-row balcony-row';
+        
+        // Row letter
+        const rowLetter = document.createElement('div');
+        rowLetter.className = 'row-number theater-row-number';
+        rowLetter.textContent = String.fromCharCode(65 + row); // A, B, C, D, etc.
+        rowDiv.appendChild(rowLetter);
+        
+        // Seats for this row
+        for (let seat = 1; seat <= config.seatsPerRow; seat++) {
+            const seatNumber = (row * config.seatsPerRow) + seat + (side === 'left' ? 300 : 400);
+            const seatElement = createTheaterSeatElement(seatNumber, takenSeats, sectionType);
+            rowDiv.appendChild(seatElement);
+        }
+        
+        sectionDiv.appendChild(rowDiv);
+    }
+    
+    return sectionDiv;
+}
+
+function createSimpleCurvedSection(side, config, takenSeats, sectionType) {
+    const sectionDiv = document.createElement('div');
+    sectionDiv.className = `curved-section ${side}-section`;
+    
+    for (let row = 0; row < config.rows; row++) {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'theater-row curved-row';
+        
+        // Row letter
+        const rowLetter = document.createElement('div');
+        rowLetter.className = 'row-number theater-row-number';
+        rowLetter.textContent = String.fromCharCode(65 + row); // A, B, C, D, etc.
+        rowDiv.appendChild(rowLetter);
+        
+        // Seats for this row
+        const seatsInRow = config.seatsPerRow[row % config.seatsPerRow.length];
+        for (let seat = 1; seat <= seatsInRow; seat++) {
+            const seatNumber = (row * 20) + seat + (side === 'left' ? 200 : side === 'center' ? 300 : 400);
+            const seatElement = createTheaterSeatElement(seatNumber, takenSeats, sectionType);
+            rowDiv.appendChild(seatElement);
+        }
+        
+        sectionDiv.appendChild(rowDiv);
+    }
+    
+    return sectionDiv;
+}
+
+function createSimpleRearSection(side, config, takenSeats, sectionType) {
+    const sectionDiv = document.createElement('div');
+    sectionDiv.className = `rear-section ${side}-rear`;
+    
+    for (let row = 0; row < config.rows; row++) {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'theater-row rear-row';
+        
+        // Row letter
+        const rowLetter = document.createElement('div');
+        rowLetter.className = 'row-number theater-row-number';
+        rowLetter.textContent = String.fromCharCode(65 + row); // A, B, C, D, etc.
+        rowDiv.appendChild(rowLetter);
+        
+        // Seats for this row
+        for (let seat = 1; seat <= config.seatsPerRow; seat++) {
+            const seatNumber = (row * config.seatsPerRow) + seat + (side === 'left' ? 500 : 600);
+            const seatElement = createTheaterSeatElement(seatNumber, takenSeats, sectionType);
+            rowDiv.appendChild(seatElement);
+        }
+        
+        sectionDiv.appendChild(rowDiv);
+    }
+    
+    return sectionDiv;
+}
+
+function createExactCurvedSection(side, config, takenSeats, sectionType) {
+    const sectionDiv = document.createElement('div');
+    sectionDiv.className = `curved-section ${side}-section`;
+    
+    config.rows.forEach((rowNum, rowIndex) => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'theater-row curved-row';
+        
+        // Row number (exact from config)
+        const rowNumber = document.createElement('div');
+        rowNumber.className = 'row-number theater-row-number';
+        rowNumber.textContent = rowNum;
+        rowDiv.appendChild(rowNumber);
+        
+        // Seats for this row
+        const seatsInRow = config.seatsPerRow[rowIndex % config.seatsPerRow.length];
+        for (let seat = 1; seat <= seatsInRow; seat++) {
+            const seatNumber = (rowIndex * 10) + seat + (side === 'left' ? 200 : side === 'center' ? 300 : 400);
+            const seatElement = createTheaterSeatElement(seatNumber, takenSeats, sectionType);
+            rowDiv.appendChild(seatElement);
+        }
+        
+        sectionDiv.appendChild(rowDiv);
+    });
+    
+    return sectionDiv;
+}
+
+function createCurvedSection(side, config, takenSeats, sectionType) {
+    const sectionDiv = document.createElement('div');
+    sectionDiv.className = `curved-section ${side}-section`;
+    
+    for (let row = 0; row < config.rows; row++) {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'theater-row curved-row';
+        
+        // Row letter
+        const rowLetter = document.createElement('div');
+        rowLetter.className = 'row-number theater-row-number';
+        rowLetter.textContent = String.fromCharCode(65 + row); // A, B, C, D, etc.
+        rowDiv.appendChild(rowLetter);
+        
+        // Seats for this row
+        const seatsInRow = config.seatsPerRow[row % config.seatsPerRow.length];
+        for (let seat = 1; seat <= seatsInRow; seat++) {
+            const seatNumber = (row * 10) + seat + (side === 'left' ? 200 : side === 'center' ? 300 : 400);
+            const seatElement = createTheaterSeatElement(seatNumber, takenSeats, sectionType);
+            rowDiv.appendChild(seatElement);
+        }
+        
+        sectionDiv.appendChild(rowDiv);
+    }
+    
+    return sectionDiv;
+}
+
+function createExactRearSection(side, config, takenSeats, sectionType) {
+    const sectionDiv = document.createElement('div');
+    sectionDiv.className = `rear-section ${side}-rear`;
+    
+    config.rows.forEach((rowNum, rowIndex) => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'theater-row rear-row';
+        
+        // Row number (exact from config)
+        const rowNumber = document.createElement('div');
+        rowNumber.className = 'row-number theater-row-number';
+        rowNumber.textContent = rowNum;
+        rowDiv.appendChild(rowNumber);
+        
+        // Seats for this row
+        for (let seat = 1; seat <= config.seatsPerRow; seat++) {
+            const seatNumber = (rowIndex * config.seatsPerRow) + seat + (side === 'left' ? 500 : 600);
+            const seatElement = createTheaterSeatElement(seatNumber, takenSeats, sectionType);
+            rowDiv.appendChild(seatElement);
+        }
+        
+        sectionDiv.appendChild(rowDiv);
+    });
+    
+    return sectionDiv;
+}
+
+function createRearSection(side, config, takenSeats, sectionType) {
+    const sectionDiv = document.createElement('div');
+    sectionDiv.className = `rear-section ${side}-rear`;
+    
+    for (let row = 0; row < config.rows; row++) {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'theater-row rear-row';
+        
+        // Row letter
+        const rowLetter = document.createElement('div');
+        rowLetter.className = 'row-number theater-row-number';
+        rowLetter.textContent = String.fromCharCode(65 + row); // A, B, C, D, etc.
+        rowDiv.appendChild(rowLetter);
+        
+        // Seats for this row
+        for (let seat = 1; seat <= config.seatsPerRow; seat++) {
+            const seatNumber = (row * config.seatsPerRow) + seat + (side === 'left' ? 500 : 600);
+            const seatElement = createTheaterSeatElement(seatNumber, takenSeats, sectionType);
+            rowDiv.appendChild(seatElement);
+        }
+        
+        sectionDiv.appendChild(rowDiv);
+    }
+    
+    return sectionDiv;
+}
+
+function createTheaterSeatElement(seatNumber, takenSeats, sectionType) {
+    const seatElement = document.createElement('div');
+    seatElement.className = `theater-seat ${sectionType}-seat`;
+    seatElement.dataset.seatNumber = seatNumber;
+    
+    if (takenSeats.includes(seatNumber)) {
+        seatElement.classList.add('taken');
+    } else {
+        seatElement.classList.add('available');
+        seatElement.onclick = () => toggleSeat(seatNumber);
+    }
+    
+    return seatElement;
+}
+
+function createSeatElement(seatNumber, takenSeats, isVip = false) {
+    const seatElement = document.createElement('div');
+    seatElement.className = isVip ? 'theater-seat vip-seat' : 'theater-seat';
+    seatElement.dataset.seatNumber = seatNumber;
+    
+    if (takenSeats.includes(seatNumber)) {
+        seatElement.classList.add('taken');
+    } else {
+        seatElement.classList.add('available');
+        seatElement.onclick = () => toggleSeat(seatNumber);
+    }
+    
+    return seatElement;
+}
+
+function toggleSeat(seatNumber) {
+    const seatElement = document.querySelector(`[data-seat-number="${seatNumber}"]`);
+    
+    if (selectedSeats.includes(seatNumber)) {
+        // Deselect seat
+        selectedSeats = selectedSeats.filter(seat => seat !== seatNumber);
+        seatElement.classList.remove('selected');
+        seatElement.classList.add('available');
+    } else {
+        // Select seat
+        selectedSeats.push(seatNumber);
+        seatElement.classList.remove('available');
+        seatElement.classList.add('selected');
+    }
+    
+    updateSelectedSeatsSummary();
+}
+
+function updateSelectedSeatsSummary() {
+    const summary = document.getElementById('selected-seats-summary');
+    const seatsList = document.getElementById('selected-seats-list');
+    const totalPrice = document.getElementById('total-price');
+    
+    if (selectedSeats.length === 0) {
+        summary.style.display = 'none';
+        return;
+    }
+    
+    summary.style.display = 'block';
+    
+    // Update seats list
+    seatsList.innerHTML = selectedSeats.map(seat => 
+        `<span class="badge bg-light text-dark me-1 mb-1">Seat ${seat}</span>`
+    ).join('');
+    
+    // Calculate total price
+    const basePrice = eventData.pricing.basePrice;
+    const total = selectedSeats.length * basePrice;
+    totalPrice.textContent = total.toFixed(2);
+}
+
+function proceedToCheckout() {
+    if (selectedSeats.length === 0) {
+        alert('Please select at least one seat.');
+        return;
+    }
+    
+    if (!selectedShowDate) {
+        alert('Please select a show date.');
+        return;
+    }
+    
+    // For now, just show an alert with the selection
+    // Later this will redirect to a checkout page
+    const showDate = new Date(selectedShowDate);
+    alert(`Selected ${selectedSeats.length} seat(s) for ${showDate.toLocaleDateString()} at ${showDate.toLocaleTimeString()}\nTotal: $${(selectedSeats.length * eventData.pricing.basePrice).toFixed(2)}\n\nCheckout system will be implemented later.`);
 }
 
 function bookmarkEvent() {

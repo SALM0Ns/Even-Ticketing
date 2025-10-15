@@ -22,6 +22,7 @@ router.get('/', async (req, res) => {
           events = events.map(event => ({ ...event.toObject(), category: 'stage-plays' }));
           break;
         case 'orchestra':
+        case 'live-orchestra':
           events = await LiveOrchestra.find();
           events = events.map(event => ({ ...event.toObject(), category: 'orchestra' }));
           break;
@@ -90,6 +91,7 @@ router.get('/:category/:id', async (req, res) => {
         model = StagePlays;
         break;
       case 'orchestra':
+      case 'live-orchestra':
         model = LiveOrchestra;
         break;
       default:

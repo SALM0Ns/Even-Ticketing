@@ -1223,6 +1223,878 @@ section {
 
 /* Event Cards - Removed old styles to prevent conflicts with poster layout */
 
+/* Seat Selection System */
+.seat-selection-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.show-date-card {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+}
+
+.show-date-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.show-date-card.border-primary {
+    border-color: #495057 !important;
+    background-color: #f8f9fa;
+}
+
+.seat-legend {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.seat-legend-available,
+.seat-legend-selected,
+.seat-legend-taken {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    border: 1px solid #495057;
+}
+
+.seat-legend-available {
+    background-color: #495057;
+    border-color: #6c757d;
+}
+
+.seat-legend-selected {
+    background-color: #ffc107;
+    border-color: #ffc107;
+}
+
+.seat-legend-taken {
+    background-color: #343a40;
+    border-color: #495057;
+}
+
+.screen-stage {
+    background: #6c757d;
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    display: block;
+    text-transform: lowercase;
+    letter-spacing: 1px;
+    border: 1px solid #495057;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    text-align: center;
+    margin: 0 auto 2rem auto;
+    max-width: 300px;
+}
+
+.screen-stage::before {
+    content: '🎭';
+    font-size: 1.5rem;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.screen-stage::after {
+    content: 'STAGE';
+    display: block;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #ffc107;
+    letter-spacing: 0.1rem;
+    margin-top: 0.25rem;
+}
+
+.seating-container {
+    max-width: 100%;
+    width: 100%;
+    overflow-x: auto;
+    padding: 1.5rem 0.5rem;
+    background: #2c3e50;
+    border-radius: 8px;
+    border: 1px solid #34495e;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Theater Row Layout */
+.theater-row {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-bottom: 0.75rem;
+    min-width: fit-content;
+    position: relative;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.row-number {
+    width: 25px;
+    text-align: center;
+    font-weight: 600;
+    color: white;
+    font-size: 0.85rem;
+    background: transparent;
+    padding: 0.25rem 0.1rem;
+    border-radius: 4px;
+    border: none;
+}
+
+/* Seating Sections */
+.seating-section {
+    display: flex;
+    gap: 0.2rem;
+    align-items: center;
+    flex: 1;
+    justify-content: center;
+}
+
+/* Center Aisle */
+.center-aisle {
+    width: 15px;
+    height: 32px;
+    background: transparent;
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 0.2rem;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.center-aisle::before {
+    content: '';
+    width: 2px;
+    height: 100%;
+    background: #495057;
+    border-radius: 1px;
+}
+
+/* Main Walkway */
+.main-walkway {
+    width: 100%;
+    height: 20px;
+    background: transparent;
+    border-radius: 0;
+    margin: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.main-walkway::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #495057;
+    transform: translateY(-50%);
+}
+
+.walkway-label {
+    display: none;
+}
+
+.theater-seat {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 500;
+    border: 1px solid #495057;
+    position: relative;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Legacy seat class for backward compatibility */
+.seat {
+    width: 35px;
+    height: 35px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 2px solid transparent;
+    position: relative;
+}
+
+/* Theater Seat States */
+.theater-seat.available {
+    background: #495057;
+    border-color: #6c757d;
+    color: #adb5bd;
+}
+
+.theater-seat.available:hover {
+    background: #6c757d;
+    transform: scale(1.05);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    border-color: #adb5bd;
+}
+
+.theater-seat.selected {
+    background: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+    transform: scale(1.05);
+    box-shadow: 0 2px 6px rgba(255, 193, 7, 0.4);
+}
+
+.theater-seat.taken {
+    background: #343a40;
+    border-color: #495057;
+    color: #6c757d;
+    cursor: not-allowed;
+    position: relative;
+    opacity: 0.6;
+}
+
+.theater-seat.taken::after {
+    content: '✕';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.9rem;
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* Color coding for different seat sections */
+.theater-seat.first-floor-seat {
+    background: #f39c12 !important; /* Yellow for 1st floor */
+    border-color: #e67e22 !important;
+}
+
+.theater-seat[class*="2nd-floor-left-seat"],
+.theater-seat[class*="2nd-floor-right-seat"] {
+    background: #3498db !important; /* Blue for 2nd floor left/right */
+    border-color: #2980b9 !important;
+}
+
+.theater-seat.second-floor-rear-seat {
+    background: #27ae60 !important; /* Green for 2nd floor rear */
+    border-color: #229954 !important;
+}
+
+/* Override colors for taken seats to show red X */
+.theater-seat.taken.first-floor-seat,
+.theater-seat.taken[class*="2nd-floor-left-seat"],
+.theater-seat.taken[class*="2nd-floor-right-seat"],
+.theater-seat.taken.second-floor-rear-seat {
+    background: #343a40 !important;
+    border-color: #495057 !important;
+    opacity: 0.6;
+}
+
+/* VIP Row Styling */
+.vip-row {
+    margin-bottom: 1rem;
+    padding: 0.25rem 0;
+    position: relative;
+}
+
+.vip-row-number {
+    background: linear-gradient(135deg, #ffd700 0%, #ffc107 100%) !important;
+    color: #212529 !important;
+    font-weight: bold !important;
+    border: 1px solid #ff8f00 !important;
+    box-shadow: 0 1px 3px rgba(255, 215, 0, 0.3) !important;
+}
+
+.vip-row-number small {
+    font-size: 0.6rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* VIP Seat Styling */
+.vip-seat {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 6px !important;
+    border: 2px solid #ffd700 !important;
+    box-shadow: 0 2px 6px rgba(255, 215, 0, 0.3) !important;
+    position: relative;
+}
+
+.vip-seat::before {
+    content: '★';
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #ffd700;
+    color: #212529;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    font-weight: bold;
+    box-shadow: 0 1px 3px rgba(255, 215, 0, 0.4);
+}
+
+.vip-seat.available {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%) !important;
+    border-color: #ffd700 !important;
+    color: #856404 !important;
+}
+
+.vip-seat.available:hover {
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%) !important;
+    transform: scale(1.1) !important;
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.5) !important;
+}
+
+.vip-seat.selected {
+    background: linear-gradient(135deg, #ffd700 0%, #ffc107 100%) !important;
+    border-color: #ff8f00 !important;
+    color: #212529 !important;
+    transform: scale(1.1) !important;
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.6) !important;
+}
+
+.vip-seat.taken {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+    border-color: #6c757d !important;
+    color: #6c757d !important;
+    opacity: 0.7 !important;
+}
+
+.vip-seat.taken::after {
+    content: '✕';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1rem;
+    color: #dc3545;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Theater Layout Styles for Stage Plays */
+.theater-stage {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 1rem 0;
+}
+
+.stage-indicator {
+    position: relative;
+    display: inline-block;
+}
+
+.stage-text {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    color: #ecf0f1;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    border: 2px solid #3498db;
+}
+
+.stage-line {
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent 0%, #3498db 20%, #3498db 80%, transparent 100%);
+    margin-top: 0.5rem;
+    border-radius: 2px;
+}
+
+/* Front Premium Sections */
+.front-sections {
+    display: flex;
+    justify-content: center;
+    gap: 2rem; /* Increased gap to prevent overlap */
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.front-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.section-label {
+    background: #e74c3c;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}
+
+.front-seats {
+    display: flex;
+    gap: 0.5rem; /* Increased gap to prevent overlap */
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* Main Curved Sections - Shifted Outward */
+.main-sections {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    gap: 4rem; /* Increased gap to shift sections outward */
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.curved-section {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 150px;
+    max-width: 180px;
+}
+
+.left-section {
+    align-items: flex-end;
+}
+
+.center-section {
+    align-items: center;
+    min-width: 300px; /* Increased width for better spacing */
+    max-width: 350px;
+}
+
+/* Rectangular seats for center section */
+.center-section .theater-seat {
+    border-radius: 4px; /* Rectangular instead of octagonal */
+    width: 24px;
+    height: 20px;
+}
+
+/* Increased spacing for center section rows */
+.center-section .curved-row {
+    gap: 1rem; /* Increased gap for rectangular seats */
+}
+
+.right-section {
+    align-items: flex-start;
+}
+
+.curved-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+}
+
+/* Rear Sections - Shifted Outward */
+.rear-sections {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+    gap: 5rem; /* Increased gap to match main sections */
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.rear-section {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 120px;
+    max-width: 150px;
+}
+
+.left-rear {
+    align-items: flex-end;
+}
+
+.right-rear {
+    align-items: flex-start;
+}
+
+.rear-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+}
+
+/* Theater Row Numbers */
+.theater-row-number {
+    background: #34495e;
+    color: #ecf0f1;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    min-width: 30px;
+    text-align: center;
+}
+
+/* Theater Seat Types */
+.premium-seat {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    border: 2px solid #a93226;
+    color: white;
+    font-weight: bold;
+}
+
+.premium-seat.available:hover {
+    background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.5);
+}
+
+.premium-seat.selected {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    border-color: #d68910;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(243, 156, 18, 0.6);
+}
+
+.section-a-seat {
+    background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
+    border: 2px solid #e67e22;
+    color: #2c3e50;
+    font-weight: bold;
+}
+
+.section-a-seat.available:hover {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(241, 196, 15, 0.5);
+}
+
+.section-a-seat.selected {
+    background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+    border-color: #ba4a00;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(230, 126, 34, 0.6);
+}
+
+.section-b-seat {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    border: 2px solid #1f618d;
+    color: white;
+    font-weight: bold;
+}
+
+.section-b-seat.available:hover {
+    background: linear-gradient(135deg, #2980b9 0%, #1f618d 100%);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.5);
+}
+
+.section-b-seat.selected {
+    background: linear-gradient(135deg, #1f618d 0%, #154360 100%);
+    border-color: #0e3a52;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(31, 97, 141, 0.6);
+}
+
+/* Theater Legend */
+.theater-legend {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 2rem;
+    padding: 1rem;
+    background: rgba(44, 62, 80, 0.1);
+    border-radius: 8px;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+}
+
+.legend-color.premium {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+}
+
+.legend-color.section-a {
+    background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
+}
+
+.legend-color.section-b {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+}
+
+.legend-color.accessible {
+    background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+    color: white;
+}
+
+/* Responsive Design for Theater Layout */
+@media (max-width: 768px) {
+    .front-sections {
+        gap: 0.25rem;
+    }
+    
+    .section-label {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.5rem;
+    }
+    
+    .theater-seat {
+        width: 24px;
+        height: 24px;
+        font-size: 0.7rem;
+    }
+    
+    .theater-row-number {
+        font-size: 0.7rem;
+        min-width: 25px;
+        padding: 0.2rem 0.4rem;
+    }
+    
+    .stage-text {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+    }
+    
+    .theater-legend {
+        gap: 1rem;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .main-sections {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .rear-sections {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
+
+/* Legacy seat states for backward compatibility */
+.seat.available {
+    background-color: #e3f2fd;
+    border-color: #2196f3;
+    color: #1976d2;
+}
+
+.seat.available:hover {
+    background-color: #bbdefb;
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+.seat.selected {
+    background-color: #ffa726;
+    border-color: #ff9800;
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.4);
+}
+
+.seat.taken {
+    background-color: #f5f5f5;
+    border-color: #9e9e9e;
+    color: #9e9e9e;
+    cursor: not-allowed;
+    position: relative;
+}
+
+.seat.taken::after {
+    content: '✕';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.2rem;
+    color: #f44336;
+    font-weight: bold;
+}
+
+.selected-seats-summary {
+    animation: slideInUp 0.3s ease;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design for Theater Seat Selection */
+@media (max-width: 768px) {
+    .seating-container {
+        padding: 1rem 0.25rem;
+    }
+    
+    .theater-seat {
+        width: 22px;
+        height: 22px;
+        font-size: 0.6rem;
+    }
+    
+    .row-number {
+        width: 20px;
+        font-size: 0.75rem;
+        padding: 0.2rem 0.1rem;
+    }
+    
+    .center-aisle {
+        width: 12px;
+        height: 22px;
+        margin: 0 0.15rem;
+    }
+    
+    .main-walkway {
+        height: 15px;
+        margin: 0.4rem 0;
+    }
+    
+    .seat-legend {
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+    
+    .screen-stage {
+        padding: 0.5rem 1.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .theater-row {
+        gap: 0.2rem;
+    }
+    
+    .seating-section {
+        gap: 0.15rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .theater-seat {
+        width: 20px;
+        height: 20px;
+        font-size: 0.55rem;
+    }
+    
+    .row-number {
+        width: 18px;
+        font-size: 0.7rem;
+        padding: 0.15rem 0.05rem;
+    }
+    
+    .center-aisle {
+        width: 12px;
+        height: 20px;
+        margin: 0 0.2rem;
+    }
+    
+    .main-walkway {
+        height: 12px;
+        margin: 0.3rem 0;
+    }
+    
+    .theater-row {
+        gap: 0.2rem;
+    }
+    
+    .seating-section {
+        gap: 0.1rem;
+    }
+    
+    .screen-stage {
+        padding: 0.4rem 1rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* Legacy responsive design for backward compatibility */
+@media (max-width: 768px) {
+    .seat {
+        width: 30px;
+        height: 30px;
+        font-size: 0.7rem;
+    }
+    
+    .row-label {
+        width: 25px;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .seat {
+        width: 25px;
+        height: 25px;
+        font-size: 0.6rem;
+    }
+    
+    .row-label {
+        width: 20px;
+        font-size: 0.7rem;
+    }
+    
+    .seating-row {
+        gap: 0.25rem;
+    }
+}
+
 .event-status {
     position: absolute;
     top: 10px;
@@ -1451,4 +2323,185 @@ section {
 .border-gradient {
     border: 2px solid;
     border-image: linear-gradient(45deg, var(--primary-color), var(--info-color)) 1;
+}
+
+/* Multi-Level Theater Layout - Stage removed, seats centered */
+
+/* Floor Labels */
+.floor-label {
+    background: #34495e;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+
+/* 1st Floor Section - Centered between balconies */
+.first-floor-section {
+    padding: 1rem;
+    margin: 0 auto 2rem auto;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+}
+
+.first-floor-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    justify-content: center;
+}
+
+/* 2nd Floor Side Balconies - Horizontal layout with main area */
+.second-floor-sides {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    margin: 0 auto 2rem auto;
+    gap: 2rem;
+    max-width: 1000px;
+    width: 100%;
+}
+
+.balcony-section {
+    flex: 0 0 auto;
+    padding: 1rem;
+    min-width: 200px;
+}
+
+.balcony-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    justify-content: center;
+}
+
+/* 2nd Floor Rear - Centered between balconies */
+.second-floor-rear {
+    padding: 1rem;
+    margin: 0 auto 2rem auto;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    
+}
+
+.second-floor-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    justify-content: center;
+}
+
+/* Multi-Level Legend - Force Perfect Alignment */
+.theater-legend {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 0;
+    margin: 2rem auto 0 auto;
+    max-width: 800px;
+    width: 100%;
+}
+
+.theater-legend .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    justify-content: center;
+    flex-shrink: 0;
+    flex-direction: row;
+    padding: 0.5rem;
+    height: 50px;
+    position: relative;
+    top: 0;
+}
+
+.theater-legend .legend-item span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    line-height: 1;
+}
+
+.theater-legend .legend-color {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.theater-legend .legend-color.main-floor {
+    background: #f39c12; /* Yellow for 1st floor */
+}
+
+.theater-legend .legend-color.left-balcony {
+    background: #3498db; /* Blue for 2nd floor left */
+}
+
+.theater-legend .legend-color.right-balcony {
+    background: #3498db; /* Blue for 2nd floor right */
+}
+
+.theater-legend .legend-color.second-floor-rear {
+    background: #27ae60; /* Green for 2nd floor middle */
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+    top: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+    outline: none;
+}
+
+/* Individual positioning for 2nd Floor Rear item */
+.theater-legend .legend-item.second-floor-rear {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    justify-content: center;
+    flex-shrink: 0;
+    flex-direction: row;
+    padding: 0.5rem;
+    height: 50px;
+    position: relative;
+    top: 0;
+    margin: 0;
+    vertical-align: middle;
+    box-sizing: border-box;
+    line-height: 1;
+}
+
+
+/* Responsive Design for Multi-Level Theater */
+@media (max-width: 768px) {
+    .second-floor-sides {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .first-floor-section,
+    .balcony-section,
+    .second-floor-rear {
+        padding: 0.5rem;
+    }
 }

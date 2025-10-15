@@ -24,6 +24,39 @@ const stagePlaySchema = new mongoose.Schema({
         type: Date,
         required: [true, 'End date is required']
     },
+    showDates: [{
+        date: {
+            type: Date,
+            required: true
+        },
+        seating: {
+            totalSeats: {
+                type: Number,
+                default: 150
+            },
+            takenSeats: [{
+                type: Number
+            }],
+            availableSeats: {
+                type: Number,
+                default: 150
+            }
+        }
+    }],
+    // Legacy seating for backward compatibility
+    seating: {
+        totalSeats: {
+            type: Number,
+            default: 150
+        },
+        takenSeats: [{
+            type: Number
+        }],
+        availableSeats: {
+            type: Number,
+            default: 150
+        }
+    },
     performances: [{
         date: {
             type: Date,
