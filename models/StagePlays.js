@@ -16,6 +16,28 @@ const stagePlaySchema = new mongoose.Schema({
         type: String,
         default: '/images/default-stage-play.jpg'
     },
+    poster: {
+        type: String,
+        default: '/images/default-stage-play-poster.jpg'
+    },
+    wallpaper: {
+        type: String,
+        default: '/images/default-stage-play-wallpaper.jpg'
+    },
+    cloudinary: {
+        poster: {
+            url: String,
+            publicId: String,
+            cloudId: String,
+            publicUrl: String
+        },
+        wallpaper: {
+            url: String,
+            publicId: String,
+            cloudId: String,
+            publicUrl: String
+        }
+    },
     date: {
         type: Date,
         required: [true, 'Performance date is required']

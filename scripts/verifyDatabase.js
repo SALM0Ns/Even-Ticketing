@@ -30,7 +30,7 @@ async function verifyDatabase() {
     });
 
     // Check Stage Plays
-    console.log('🎭 STAGE PLAYS:');
+    console.log(' STAGE PLAYS:');
     const stagePlays = await StagePlays.find();
     stagePlays.forEach(play => {
       console.log(`  ✅ ${play.name}`);

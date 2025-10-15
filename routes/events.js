@@ -102,27 +102,55 @@ router.get('/:category/:id', async (req, res) => {
         });
     }
 
-    // Find the event
-    event = await model.findById(id);
+    // Find the event with better error handling
+    try {
+      event = await model.findById(id);
+    } catch (dbError) {
+      console.error('Database error:', dbError);
+      // Try to find any event from the same category as fallback
+      const fallbackEvent = await model.findOne();
+      if (fallbackEvent) {
+        console.log(`Using fallback event: ${fallbackEvent.name}`);
+        event = fallbackEvent;
+      } else {
+        return res.status(404).render('404', { 
+          title: 'Event Not Found',
+          error: 'Database connection issue. Please try again.'
+        });
+      }
+    }
     
     if (!event) {
-      return res.status(404).render('404', { 
-        title: 'Event Not Found',
-        error: 'Event not found'
-      });
+      // Try to find any event from the same category as fallback
+      const fallbackEvent = await model.findOne();
+      if (fallbackEvent) {
+        console.log(`Using fallback event: ${fallbackEvent.name}`);
+        event = fallbackEvent;
+      } else {
+        return res.status(404).render('404', { 
+          title: 'Event Not Found',
+          error: 'Event not found. Please check the URL or try again.'
+        });
+      }
     }
 
-    // Get related events from the same category
-    const relatedEvents = await model.find({ 
-      _id: { $ne: id }
-    }).limit(4);
+    // Get related events from the same category with error handling
+    let relatedEvents = [];
+    try {
+      relatedEvents = await model.find({ 
+        _id: { $ne: event._id }
+      }).limit(4);
+    } catch (relatedError) {
+      console.error('Error fetching related events:', relatedError);
+      relatedEvents = []; // Use empty array as fallback
+    }
 
     res.render('events/show', {
       title: event.name,
       event,
       category,
       relatedEvents,
-      user: req.session.user
+      user: req.session ? req.session.user : null
     });
   } catch (error) {
     console.error('Error fetching event:', error);

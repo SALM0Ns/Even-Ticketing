@@ -16,6 +16,28 @@ const liveOrchestraSchema = new mongoose.Schema({
         type: String,
         default: '/images/default-orchestra.jpg'
     },
+    poster: {
+        type: String,
+        default: '/images/default-orchestra-poster.jpg'
+    },
+    wallpaper: {
+        type: String,
+        default: '/images/default-orchestra-wallpaper.jpg'
+    },
+    cloudinary: {
+        poster: {
+            url: String,
+            publicId: String,
+            cloudId: String,
+            publicUrl: String
+        },
+        wallpaper: {
+            url: String,
+            publicId: String,
+            cloudId: String,
+            publicUrl: String
+        }
+    },
     date: {
         type: Date,
         required: [true, 'Concert date is required']

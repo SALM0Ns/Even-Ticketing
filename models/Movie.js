@@ -16,6 +16,28 @@ const movieSchema = new mongoose.Schema({
         type: String,
         default: '/images/default-movie.jpg'
     },
+    poster: {
+        type: String,
+        default: '/images/default-movie-poster.jpg'
+    },
+    wallpaper: {
+        type: String,
+        default: '/images/default-movie-wallpaper.jpg'
+    },
+    cloudinary: {
+        poster: {
+            url: String,
+            publicId: String,
+            cloudId: String,
+            publicUrl: String
+        },
+        wallpaper: {
+            url: String,
+            publicId: String,
+            cloudId: String,
+            publicUrl: String
+        }
+    },
     date: {
         type: Date,
         required: [true, 'Show date is required']
