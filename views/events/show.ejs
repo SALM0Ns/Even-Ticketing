@@ -58,16 +58,22 @@
 
                     <!-- Action Buttons -->
                     <div class="d-flex gap-3 mb-4">
-                        <a href="<%= primaryCtaHref %>" class="btn btn-primary btn-lg">
-                            <i class="<%= primaryCtaIcon %>"></i><%= primaryCtaLabel %>
-                        </a>
-                        <button class="btn btn-success btn-lg" onclick="testPurchaseTicket()">
-                            <i class="fas fa-qrcode me-2"></i>Test QR Purchase
-                        </button>
+                        <% if (user && (user.role === 'admin' || user.role === 'organizer')) { %>
+                            <!-- Admin/Organizer View - No ticket purchase -->
+                            <div class="alert alert-info d-flex align-items-center">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <span><%= user.role === 'admin' ? 'Admin' : 'Organizer' %> view - Ticket purchase not available</span>
+                            </div>
+                        <% } else { %>
+                            <!-- Regular User View -->
+                            <a href="<%= primaryCtaHref %>" class="btn btn-primary btn-lg">
+                                <i class="<%= primaryCtaIcon %>"></i><%= primaryCtaLabel %>
+                            </a>
+                        <% } %>
                         <button class="btn btn-outline-light btn-lg" onclick="shareEvent()">
                             <i class="fas fa-share-alt me-2"></i>Share
                         </button>
-                        <% if (user) { %>
+                        <% if (user && user.role === 'attendee') { %>
                             <button class="btn btn-outline-light btn-lg" onclick="bookmarkEvent()">
                                 <i class="fas fa-bookmark me-2"></i>Save
                             </button>
@@ -565,16 +571,34 @@ function loadShowDates() {
     const container = document.getElementById('show-dates-container');
     container.innerHTML = '';
     
+    console.log('🎬 Loading show dates...');
+    console.log('Event data:', eventData);
+    console.log('Show dates:', eventData.showDates);
+    console.log('Show dates length:', eventData.showDates ? eventData.showDates.length : 0);
+    
+    if (!eventData.showDates || eventData.showDates.length === 0) {
+        console.log('❌ No show dates found');
+        container.innerHTML = '<div class="col-12"><p class="text-muted text-center">No show dates available</p></div>';
+        return;
+    }
+    
     eventData.showDates.forEach((dateObj, index) => {
+        console.log(`Processing date ${index + 1}:`, dateObj);
+        
         // Handle both object format {date: Date} and direct Date format
         const dateValue = dateObj.date || dateObj;
+        console.log(`Date value:`, dateValue);
+        
         const showDate = new Date(dateValue);
+        console.log(`Parsed date:`, showDate);
         
         // Validate date
         if (isNaN(showDate.getTime())) {
             console.error('Invalid date:', dateValue);
             return;
         }
+        
+        console.log(`Valid date: ${showDate.toLocaleDateString()}`);
         
         const dateCard = document.createElement('div');
         dateCard.className = 'col-md-4 mb-2';
@@ -1176,40 +1200,64 @@ function proceedToCheckout() {
     alert('Please select at least one seat.');
     return;
   }
+  
+  if (!selectedShowDate) {
+    alert('Please select a show date.');
+    return;
+  }
 
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = '/tickets/create';
+  // Check if user is logged in
+  <% if (!user) { %>
+    // Guest user - redirect to login
+    const showDate = new Date(selectedShowDate);
+    const totalPrice = (selectedSeats.length * eventData.pricing.basePrice).toFixed(2);
+    
+    // Store checkout data in sessionStorage for after login
+    const checkoutData = {
+      eventId: '<%= event._id %>',
+      eventName: '<%= event.name %>',
+      eventType: '<%= category %>',
+      showDate: selectedShowDate,
+      selectedSeats: selectedSeats,
+      totalPrice: totalPrice,
+      redirectTo: window.location.href
+    };
+    
+    sessionStorage.setItem('pendingCheckout', JSON.stringify(checkoutData));
+    
+    // Show message and redirect to login
+    alert(`Please login to proceed with your purchase.\n\nSelected ${selectedSeats.length} seat(s) for ${showDate.toLocaleDateString()}\nTotal: $${totalPrice}\n\nYou will be redirected to login page.`);
+    window.location.href = '/auth/login?redirect=' + encodeURIComponent(window.location.href);
+    return;
+  <% } %>
 
-  // Event ID และ user ID (mock หรือดึงจาก session)
-  const eventIdInput = document.createElement('input');
-  eventIdInput.type = 'hidden';
-  eventIdInput.name = 'eventId';
-  eventIdInput.value = '<%= event._id %>';
-  form.appendChild(eventIdInput);
+  // User is logged in - proceed to checkout
+  const orderData = {
+    eventId: '<%= event._id %>',
+    eventName: '<%= event.name %>',
+    eventType: '<%= category %>',
+    showDate: selectedShowDate,
+    venue: {
+      name: '<%= event.location.name %>',
+      address: '<%= event.location.address %>',
+      city: '<%= event.location.city %>'
+    },
+    selectedSeats: selectedSeats.map(seat => ({
+      seatNumber: seat,
+      seatType: (typeof seat === 'string' && seat.includes('VIP')) ? 'vip' : 'standard',
+      price: (typeof seat === 'string' && seat.includes('VIP')) ? 
+        (<%= event.pricing.vipPrice || event.pricing.basePrice %>) : 
+        (<%= event.pricing.basePrice %>)
+    }))
+  };
 
-  const userIdInput = document.createElement('input');
-  userIdInput.type = 'hidden';
-  userIdInput.name = 'userId';
-  userIdInput.value = '<%= user ? user._id : "6719c4f99999999999999999" %>'; // mock user
-  form.appendChild(userIdInput);
+  console.log('🛒 Creating checkout order:', orderData);
 
-  const priceInput = document.createElement('input');
-  priceInput.type = 'hidden';
-  priceInput.name = 'price';
-  priceInput.value = eventData.pricing.basePrice;
-  form.appendChild(priceInput);
+  // Store order data in session storage
+  sessionStorage.setItem('checkoutOrder', JSON.stringify(orderData));
 
-  selectedSeats.forEach(seat => {
-    const seatInput = document.createElement('input');
-    seatInput.type = 'hidden';
-    seatInput.name = 'seats[]';
-    seatInput.value = seat;
-    form.appendChild(seatInput);
-  });
-
-  document.body.appendChild(form);
-  form.submit();
+  // Redirect to checkout page
+  window.location.href = '/checkout';
 }
 
 function bookmarkEvent() {
@@ -1217,17 +1265,6 @@ function bookmarkEvent() {
     alert('Bookmark functionality coming soon!');
 }
 
-// Test purchase function for QR code system
-function testPurchaseTicket() {
-    const eventId = '<%= event._id %>';
-    const eventType = '<%= category %>';
-    const seatNumber = 'A-1'; // Mock seat
-    const price = <%= event.pricing.basePrice %>;
-    
-    if (confirm(`Purchase ticket for ${eventType}?\nSeat: ${seatNumber}\nPrice: $${price}`)) {
-        EventTicketing.purchaseTicket(eventId, eventType, seatNumber, price);
-    }
-}
 // Countdown Timer Functionality
 function initializeCountdownTimer() {
     const countdownTimer = document.querySelector('.countdown-timer');

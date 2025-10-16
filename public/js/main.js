@@ -40,6 +40,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Update Scroll Buttons Function
+function updateScrollButtons() {
+    // This function can be used to update scroll buttons if needed
+    // For now, it's a placeholder to prevent the error
+    console.log('Scroll buttons updated');
+}
+
 // Countdown Timer Functionality
 function initializeCountdownTimers() {
     const countdownElements = document.querySelectorAll('.countdown-timer');
@@ -145,10 +152,8 @@ function createEventCard(event) {
     const color = categoryColors[event.category] || 'secondary';
     const categoryName = categoryDisplayNames[event.category] || event.category;
     
-    // ✅ รองรับภาพจาก URL และ fallback เป็น placeholder
-    const imageSrc = event.image && event.image.startsWith('http')
-        ? event.image
-        : 'https://via.placeholder.com/600x300?text=Event+Image';
+    // ✅ ใช้ poster field หรือ fallback เป็น default image
+    const imageSrc = event.poster || event.image || '/images/default-event-poster.jpg';
     
     return `
         <div class="col-md-4 mb-4">
@@ -415,21 +420,6 @@ async function purchaseTicket(eventId, seatNumber, price) {
   }
 }
 
-// Test purchase function for demo
-function testPurchaseTicket(eventId = null) {
-    // If no eventId provided, try to get it from the current page
-    if (!eventId) {
-        // Try to get eventId from the current page URL or data attributes
-        const currentEventId = document.querySelector('[data-event-id]')?.dataset.eventId ||
-                              window.location.pathname.split('/').pop() ||
-                              '68efd1f5e6cf58be816ef44c'; // fallback
-        eventId = currentEventId;
-    }
-    
-    console.log('Testing ticket purchase with eventId:', eventId);
-    purchaseTicket(eventId, 'A-12', 25);
-}
-
 // Export functions for global use
 window.EventTicketing = {
     startCountdown: startCountdown,
@@ -439,6 +429,5 @@ window.EventTicketing = {
     searchEvents: searchEvents,
     validateForm: validateForm,
     previewImage: previewImage,
-    purchaseTicket: purchaseTicket,
-    testPurchaseTicket: testPurchaseTicket
+    purchaseTicket: purchaseTicket
 };

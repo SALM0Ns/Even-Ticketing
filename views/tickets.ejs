@@ -1,0 +1,641 @@
+<%- include('partials/header') %>
+
+<div class="tickets-page bg-light">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <!-- Success Header -->
+                <div class="text-center mb-5">
+                    <div class="success-icon mb-3">
+                        <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                    </div>
+                    <h2 class="text-success fw-bold">Order Confirmed!</h2>
+                    <p class="lead text-muted">Thank you for your purchase! Your tickets are ready.</p>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-receipt me-2"></i>Order Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-2"><strong>Order ID:</strong> <span id="order-id-display" class="text-primary"></span></p>
+                                <p class="mb-2"><strong>Event:</strong> <span id="event-name-display"></span></p>
+                                <p class="mb-2"><strong>Show Date:</strong> <span id="show-date-display"></span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-2"><strong>Venue:</strong> <span id="venue-display"></span></p>
+                                <p class="mb-2"><strong>Total Amount:</strong> <span id="total-amount-display" class="text-success fw-bold"></span></p>
+                                <p class="mb-0"><strong>Status:</strong> <span id="payment-status-display" class="badge bg-success"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- E-Tickets -->
+                <div id="ticket-cards-container">
+                    <!-- E-Tickets will be loaded here -->
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="text-center mt-4">
+                    <button class="btn btn-outline-primary me-2" onclick="printTickets()">
+                        <i class="fas fa-print me-2"></i>Print All Tickets
+                    </button>
+                    <button class="btn btn-primary me-2" onclick="downloadTicketsPdf()">
+                        <i class="fas fa-download me-2"></i>Download PDF
+                    </button>
+                    <a href="/my-tickets" class="btn btn-outline-success">
+                        <i class="fas fa-ticket-alt me-2"></i>View All My Tickets
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .btn, .card-header {
+        display: none !important;
+    }
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    .ticket-card {
+        break-inside: avoid;
+        margin-bottom: 20px;
+    }
+}
+
+.ticket-card {
+    border: 2px solid #007bff;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.qr-code-placeholder {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    margin: 10px auto;
+}
+
+@media print {
+    .ticket-card {
+        color-adjust: exact;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const orderId = window.location.pathname.split('/').pop();
+    if (!orderId) {
+        alert('Invalid order ID.');
+        window.location.href = '/';
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/payments/order/${orderId}`);
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to fetch order details');
+        }
+
+        const order = result.order;
+
+        // Populate order details
+        document.getElementById('order-id-display').textContent = order._id;
+        document.getElementById('event-name-display').textContent = order.event.eventName;
+        document.getElementById('show-date-display').textContent = new Date(order.event.showDate).toLocaleString('en-US', {
+            weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+        document.getElementById('venue-display').textContent = `${order.event.venue.name}, ${order.event.venue.city}`;
+        document.getElementById('total-amount-display').textContent = `$${order.pricing.total.toFixed(2)}`;
+        document.getElementById('payment-status-display').textContent = order.paymentStatus;
+        document.getElementById('payment-status-display').classList.add(`bg-${order.paymentStatus === 'completed' ? 'success' : 'warning'}`);
+
+        // Populate E-Tickets
+        const ticketCardsContainer = document.getElementById('ticket-cards-container');
+        order.tickets.forEach((ticket, index) => {
+            const ticketCard = createETicket(order, ticket, index);
+            ticketCardsContainer.appendChild(ticketCard);
+            
+            // Generate QR Code for each ticket
+            generateQRCode(ticket.ticketId, order, ticket);
+        });
+
+    } catch (error) {
+        alert(`Error: ${error.message}`);
+        console.error('Error fetching order details:', error);
+        window.location.href = '/';
+    }
+});
+
+function downloadTicketsPdf() {
+    alert('PDF download functionality coming soon!');
+    // TODO: Implement PDF generation
+}
+
+function printTickets() {
+    window.print();
+}
+
+// Create E-Ticket with color-coded design
+function createETicket(order, ticket, index) {
+    const eventType = order.event.eventType.toLowerCase();
+    let colorClass, colorHex, iconClass, eventTypeText;
+    
+    // Determine colors and icons based on event type
+    switch (eventType) {
+        case 'movies':
+        case 'movie':
+            colorClass = 'movie-ticket';
+            colorHex = '#dc3545'; // Red
+            iconClass = 'fas fa-film';
+            eventTypeText = 'MOVIE';
+            break;
+        case 'stage-plays':
+        case 'stageplays':
+            colorClass = 'stage-ticket';
+            colorHex = '#0d6efd'; // Blue
+            iconClass = 'fas fa-theater-masks';
+            eventTypeText = 'STAGE PLAY';
+            break;
+        case 'orchestra':
+        case 'live-orchestra':
+        case 'liveorchestra':
+            colorClass = 'orchestra-ticket';
+            colorHex = '#ffc107'; // Gold
+            iconClass = 'fas fa-music';
+            eventTypeText = 'LIVE ORCHESTRA';
+            break;
+        default:
+            colorClass = 'default-ticket';
+            colorHex = '#6c757d'; // Gray
+            iconClass = 'fas fa-ticket-alt';
+            eventTypeText = 'EVENT';
+    }
+    
+    const showDate = new Date(order.event.showDate);
+    const dateStr = showDate.toLocaleDateString('en-US', { 
+        weekday: 'short', 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+    });
+    const timeStr = showDate.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    });
+    
+    const ticketElement = document.createElement('div');
+    ticketElement.className = 'col-lg-6 mb-4';
+    ticketElement.innerHTML = `
+        <div class="e-ticket ${colorClass}" data-ticket-id="${ticket.ticketId}">
+            <!-- Ticket Stub (Left Side) -->
+            <div class="ticket-stub">
+                <div class="stub-header" style="background-color: ${colorHex}">
+                    <div class="stub-title">E-TICKET</div>
+                    <div class="stub-type">${eventTypeText}</div>
+                </div>
+                <div class="stub-content">
+                    <div class="stub-event-name">${order.event.eventName}</div>
+                    <div class="stub-date">${dateStr}</div>
+                    <div class="stub-venue">${order.event.venue.name}</div>
+                    <div class="stub-address">${order.event.venue.address}</div>
+                    <div class="stub-city">${order.event.venue.city}</div>
+                </div>
+                <div class="stub-qr">
+                    <div class="qr-code-container">
+                        <img id="qr-code-${ticket.ticketId}" class="qr-code-image" alt="QR Code" />
+                        <div class="qr-text">SCAN FOR ENTRY</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Ticket (Right Side) -->
+            <div class="ticket-main">
+                <div class="ticket-header">
+                    <div class="event-info">
+                        <h3 class="event-name">${order.event.eventName}</h3>
+                        <div class="event-meta">
+                            <span class="event-date">${dateStr}</span>
+                            <span class="event-time">${timeStr}</span>
+                        </div>
+                    </div>
+                    <div class="event-type-badge" style="background-color: ${colorHex}">
+                        <i class="${iconClass}"></i>
+                        <span>${eventTypeText}</span>
+                    </div>
+                </div>
+                
+                <div class="ticket-body">
+                    <div class="ticket-details">
+                        <div class="detail-row">
+                            <div class="detail-label">Ticket ID:</div>
+                            <div class="detail-value">${ticket.ticketId}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Name:</div>
+                            <div class="detail-value">${order.customer.name}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Seat:</div>
+                            <div class="detail-value">${ticket.seatNumber} (${ticket.seatType.toUpperCase()})</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Price:</div>
+                            <div class="detail-value">$${ticket.price.toFixed(2)}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Email:</div>
+                            <div class="detail-value">${order.customer.email}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Contact:</div>
+                            <div class="detail-value">${order.customer.phone}</div>
+                        </div>
+                    </div>
+                    
+                </div>
+                
+                <div class="ticket-footer">
+                    <div class="venue-info">
+                        <div class="venue-name">${order.event.venue.name}</div>
+                        <div class="venue-address">${order.event.venue.address}, ${order.event.venue.city}</div>
+                    </div>
+                    <div class="website">WWW.CURSEDTICKET.COM</div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    return ticketElement;
+}
+
+// Generate QR Code for ticket
+function generateQRCode(ticketId, order, ticket) {
+    // Create unique ticket data for QR code
+    const ticketData = {
+        ticketId: ticketId,
+        eventName: order.event.eventName,
+        eventType: order.event.eventType,
+        showDate: order.event.showDate,
+        venue: order.event.venue.name,
+        seatNumber: ticket.seatNumber,
+        seatType: ticket.seatType,
+        customerName: order.customer.name,
+        customerEmail: order.customer.email,
+        orderNumber: order.orderNumber,
+        purchaseDate: new Date().toISOString(),
+        website: 'WWW.CURSEDTICKET.COM'
+    };
+    
+    // Create QR code data string
+    const qrDataString = `BEGIN:VEVENT
+SUMMARY:${order.event.eventName}
+LOCATION:${order.event.venue.name}
+DESCRIPTION:Ticket ID: ${ticketId} | Seat: ${ticket.seatNumber} | Customer: ${order.customer.name}
+DTSTART:${new Date(order.event.showDate).toISOString().replace(/[-:]/g, '').split('.')[0]}Z
+END:VEVENT`;
+    
+    // Generate QR code URL using TEC-IT service
+    const qrCodeUrl = `https://barcode.tec-it.com/barcode.ashx?data=${encodeURIComponent(qrDataString)}&code=QRCode_Events&eclevel=L&size=4`;
+    
+    // Set QR code image
+    const qrImage = document.getElementById(`qr-code-${ticketId}`);
+    if (qrImage) {
+        qrImage.src = qrCodeUrl;
+        qrImage.onload = function() {
+            console.log(`QR Code generated for ticket: ${ticketId}`);
+        };
+        qrImage.onerror = function() {
+            console.error(`Failed to load QR Code for ticket: ${ticketId}`);
+            // Fallback to placeholder
+            qrImage.style.display = 'none';
+            qrImage.parentElement.innerHTML = `
+                <div class="qr-placeholder">
+                    <i class="fas fa-qrcode"></i>
+                    <div class="qr-text">QR CODE</div>
+                </div>
+            `;
+        };
+    }
+}
+</script>
+
+<style>
+/* E-Ticket Styles */
+.e-ticket {
+    display: flex;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-bottom: 2rem;
+    position: relative;
+    max-width: 600px;
+    margin: 0 auto 2rem auto;
+}
+
+.e-ticket::before {
+    content: '';
+    position: absolute;
+    left: 30%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 8px,
+        #ddd 8px,
+        #ddd 16px
+    );
+    z-index: 1;
+}
+
+/* Ticket Stub (Left Side) */
+.ticket-stub {
+    width: 30%;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.stub-header {
+    padding: 1rem;
+    color: white;
+    text-align: center;
+    position: relative;
+}
+
+.stub-title {
+    font-size: 0.8rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-bottom: 0.25rem;
+}
+
+.stub-type {
+    font-size: 0.7rem;
+    opacity: 0.9;
+    letter-spacing: 0.5px;
+}
+
+.stub-content {
+    padding: 1rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.stub-event-name {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+}
+
+.stub-date {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.stub-venue, .stub-address, .stub-city {
+    font-size: 0.7rem;
+    color: #666;
+    margin-bottom: 0.25rem;
+}
+
+.stub-qr {
+    padding: 0.5rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.stub-qr .qr-code-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.stub-qr .qr-code-image {
+    width: 150px;
+    height: 150px;
+    border-radius: 8px;
+    border: 2px solid #ddd;
+    background: white;
+}
+
+.stub-qr .qr-text {
+    font-size: 0.6rem;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    margin-top: 0.25rem;
+    text-align: center;
+    color: #666;
+}
+
+/* Main Ticket (Right Side) */
+.ticket-main {
+    width: 70%;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.ticket-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.event-info {
+    flex: 1;
+}
+
+.event-name {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.2;
+}
+
+.event-meta {
+    display: flex;
+    gap: 1rem;
+}
+
+.event-date, .event-time {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.event-type-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
+.ticket-body {
+    display: flex;
+    gap: 2rem;
+    flex: 1;
+    margin-bottom: 1.5rem;
+}
+
+.ticket-details {
+    flex: 1;
+}
+
+.detail-row {
+    display: flex;
+    margin-bottom: 0.75rem;
+    align-items: center;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #555;
+    min-width: 80px;
+    font-size: 0.9rem;
+}
+
+.detail-value {
+    color: #333;
+    font-size: 0.9rem;
+    word-break: break-all;
+}
+
+
+.ticket-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.venue-info {
+    flex: 1;
+}
+
+.venue-name {
+    font-weight: 600;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+.venue-address {
+    color: #666;
+    font-size: 0.8rem;
+}
+
+.website {
+    font-size: 0.7rem;
+    color: #999;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+/* Color Variations */
+.movie-ticket .stub-header {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
+.stage-ticket .stub-header {
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+}
+
+.orchestra-ticket .stub-header {
+    background: linear-gradient(135deg, #ffc107 0%, #ffca2c 100%);
+    color: #000;
+}
+
+.orchestra-ticket .stub-title,
+.orchestra-ticket .stub-type {
+    color: #000;
+}
+
+/* Print Styles */
+@media print {
+    .btn, .card-header, .success-icon, .text-center.mb-5 {
+        display: none !important;
+    }
+    
+    .e-ticket {
+        break-inside: avoid;
+        margin-bottom: 1rem;
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+    
+    .tickets-page {
+        background: white !important;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .e-ticket {
+        flex-direction: column;
+    }
+    
+    .ticket-stub {
+        width: 100%;
+        min-height: 200px;
+    }
+    
+    .ticket-main {
+        width: 100%;
+    }
+    
+    .ticket-body {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .ticket-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .event-type-badge {
+        align-self: flex-start;
+    }
+}
+</style>
+
+<%- include('partials/footer') %>

@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['attendee', 'organizer'],
+        enum: ['attendee', 'organizer', 'admin'],
         default: 'attendee'
     },
     profile: {
@@ -107,8 +107,7 @@ const userSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Indexes
-userSchema.index({ email: 1 });
+// Indexes (email already has unique: true)
 userSchema.index({ role: 1 });
 userSchema.index({ 'profile.preferences.categories': 1 });
 

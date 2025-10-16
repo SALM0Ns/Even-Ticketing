@@ -58,38 +58,15 @@
                     </div>
                     <div class="card-body p-5">
                         <form action="/auth/register" method="POST" id="registerForm">
-                            <!-- Role Selection -->
+                            <!-- Account Type Info -->
                             <div class="mb-4">
-                                <label class="form-label fw-bold">Account Type *</label>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="role" id="attendee" value="attendee" 
-                                                   <%= (typeof formData !== 'undefined' && formData && formData.role === 'attendee') ? 'checked' : 'checked' %>>
-                                            <label class="form-check-label" for="attendee">
-                                                <i class="fas fa-user me-2"></i>
-                                                <strong>Attendee</strong>
-                                                <small class="d-block text-muted">Buy tickets and attend events</small>
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="role" id="organizer" value="organizer"
-                                                   <%= (typeof formData !== 'undefined' && formData && formData.role === 'organizer') ? 'checked' : '' %>>
-                                            <label class="form-check-label" for="organizer">
-                                                <i class="fas fa-calendar-plus me-2"></i>
-                                                <strong>Organizer</strong>
-                                                <small class="d-block text-muted">Create and manage events</small>
-                                            </label>
-                                        </div>
-                                    </div>
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Account Type:</strong> Attendee
+                                    <br>
+                                    <small>You can buy tickets and attend events. Organizer accounts are created by admin only.</small>
                                 </div>
-                                <% if (errors && errors.find(e => e.path === 'role')) { %>
-                                    <div class="text-danger small mt-1">
-                                        <%= errors.find(e => e.path === 'role').msg %>
-                                    </div>
-                                <% } %>
+                                <input type="hidden" name="role" value="attendee">
                             </div>
 
                             <!-- Basic Information -->
@@ -171,19 +148,6 @@
                                 </div>
                             </div>
 
-                            <!-- Organizer-specific fields -->
-                            <div id="organizerFields" style="display: none;">
-                                <div class="mb-3">
-                                    <label for="companyName" class="form-label">Company Name *</label>
-                                    <input type="text" class="form-control" id="companyName" name="companyName" 
-                                           value="<%= (typeof formData !== 'undefined' && formData) ? formData.companyName : '' %>">
-                                    <% if (errors && errors.find(e => e.path === 'companyName')) { %>
-                                        <div class="text-danger small mt-1">
-                                            <%= errors.find(e => e.path === 'companyName').msg %>
-                                        </div>
-                                    <% } %>
-                                </div>
-                            </div>
 
                             <!-- Submit Button -->
                             <div class="d-grid">
@@ -227,38 +191,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        // Show/hide organizer fields based on role selection
+        // Password confirmation validation
         document.addEventListener('DOMContentLoaded', function() {
-            const roleInputs = document.querySelectorAll('input[name="role"]');
-            const organizerFields = document.getElementById('organizerFields');
-            const companyNameInput = document.getElementById('companyName');
-            const dateOfBirthGroup = document.getElementById('dateOfBirthGroup');
-            const dateOfBirthInput = document.getElementById('dateOfBirth');
-
-            function toggleOrganizerFields() {
-                const selectedRole = document.querySelector('input[name="role"]:checked').value;
-                if (selectedRole === 'organizer') {
-                    organizerFields.style.display = 'block';
-                    companyNameInput.required = true;
-                    dateOfBirthGroup.style.display = 'none';
-                    dateOfBirthInput.required = false;
-                    dateOfBirthInput.value = '';
-                } else {
-                    organizerFields.style.display = 'none';
-                    companyNameInput.required = false;
-                    dateOfBirthGroup.style.display = '';
-                    dateOfBirthInput.required = false;
-                }
-            }
-
-            roleInputs.forEach(input => {
-                input.addEventListener('change', toggleOrganizerFields);
-            });
-
-            // Initialize on page load
-            toggleOrganizerFields();
-
-            // Password confirmation validation
             const password = document.getElementById('password');
             const confirmPassword = document.getElementById('confirmPassword');
 

@@ -1,0 +1,400 @@
+<%- include('../partials/header') %>
+
+<div class="attendee-dashboard-page py-5">
+    <div class="container">
+        <!-- Dashboard Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="text-center mb-4">
+                    <i class="fas fa-user-circle me-2"></i>Attendee Dashboard
+                </h2>
+                <p class="text-center text-muted">Welcome back, <%= user.name %>! Manage your tickets and discover new events.</p>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-5">
+            <div class="col-md-3 mb-3">
+                <div class="stat-card p-4 rounded shadow-sm text-center">
+                    <i class="fas fa-ticket-alt fa-3x text-primary mb-3"></i>
+                    <h4 class="text-primary" id="total-tickets">0</h4>
+                    <p class="text-muted mb-0">Total Tickets</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card p-4 rounded shadow-sm text-center">
+                    <i class="fas fa-calendar-check fa-3x text-success mb-3"></i>
+                    <h4 class="text-success" id="upcoming-events">0</h4>
+                    <p class="text-muted mb-0">Upcoming Events</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card p-4 rounded shadow-sm text-center">
+                    <i class="fas fa-dollar-sign fa-3x text-warning mb-3"></i>
+                    <h4 class="text-warning" id="total-spent">$0.00</h4>
+                    <p class="text-muted mb-0">Total Spent</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card p-4 rounded shadow-sm text-center">
+                    <i class="fas fa-star fa-3x text-info mb-3"></i>
+                    <h4 class="text-info" id="favorite-events">0</h4>
+                    <p class="text-muted mb-0">Favorite Events</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <h4 class="mb-3">
+                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                </h4>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="/my-tickets" class="btn btn-primary btn-lg">
+                        <i class="fas fa-ticket-alt me-2"></i>View My Tickets
+                    </a>
+                    <a href="/events" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-search me-2"></i>Browse Events
+                    </a>
+                    <a href="/user-dashboard" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-user-edit me-2"></i>Edit Profile
+                    </a>
+                    <button class="btn btn-outline-success btn-lg" onclick="shareReferral()">
+                        <i class="fas fa-share-alt me-2"></i>Share & Earn
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Tickets -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-ticket-alt me-2"></i>Recent Tickets
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="recent-tickets">
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                                <p>Loading your recent tickets...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upcoming Events -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-calendar-alt me-2"></i>Upcoming Events
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="upcoming-events-list">
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                                <p>Loading upcoming events...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommended Events -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-magic me-2"></i>Recommended for You
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="recommended-events">
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                                <p>Finding events you might like...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Event Categories -->
+        <div class="row">
+            <div class="col-12">
+                <h4 class="mb-3">
+                    <i class="fas fa-th-large me-2"></i>Browse by Category
+                </h4>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="category-card p-4 rounded shadow-sm text-center h-100">
+                            <i class="fas fa-film fa-3x text-primary mb-3"></i>
+                            <h5>Movies</h5>
+                            <p class="text-muted">Latest blockbusters and classics</p>
+                            <a href="/events?category=movies" class="btn btn-outline-primary">Browse Movies</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="category-card p-4 rounded shadow-sm text-center h-100">
+                            <i class="fas fa-theater-masks fa-3x text-success mb-3"></i>
+                            <h5>Stage Plays</h5>
+                            <p class="text-muted">Theater productions and musicals</p>
+                            <a href="/events?category=stage-plays" class="btn btn-outline-success">Browse Plays</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="category-card p-4 rounded shadow-sm text-center h-100">
+                            <i class="fas fa-music fa-3x text-warning mb-3"></i>
+                            <h5>Live Orchestra</h5>
+                            <p class="text-muted">Classical and contemporary concerts</p>
+                            <a href="/events?category=orchestra" class="btn btn-outline-warning">Browse Concerts</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    // Load dashboard data
+    await loadDashboardData();
+    await loadRecentTickets();
+    await loadUpcomingEvents();
+    await loadRecommendedEvents();
+});
+
+async function loadDashboardData() {
+    try {
+        const response = await fetch('/api/user/statistics');
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('total-tickets').textContent = data.totalTickets;
+            document.getElementById('upcoming-events').textContent = data.upcomingEvents;
+            document.getElementById('total-spent').textContent = `$${data.totalSpent.toFixed(2)}`;
+            document.getElementById('favorite-events').textContent = data.favoriteEvents || 0;
+        }
+    } catch (error) {
+        console.error('Error loading dashboard data:', error);
+    }
+}
+
+async function loadRecentTickets() {
+    try {
+        const response = await fetch('/api/user/recent-activity');
+        const data = await response.json();
+        
+        const container = document.getElementById('recent-tickets');
+        
+        if (data.success && data.recentTickets.length > 0) {
+            container.innerHTML = data.recentTickets.slice(0, 5).map(ticket => `
+                <div class="ticket-item d-flex align-items-center mb-3 p-3 border rounded">
+                    <div class="flex-shrink-0 me-3">
+                        <i class="fas fa-ticket-alt fa-2x text-primary"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">${ticket.event.eventName}</h6>
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-calendar-alt me-1"></i>${new Date(ticket.event.showDate).toLocaleDateString()}
+                            <i class="fas fa-map-marker-alt ms-3 me-1"></i>${ticket.event.venue.name}
+                            <span class="badge bg-success ms-3">${ticket.status.toUpperCase()}</span>
+                        </p>
+                    </div>
+                    <div class="flex-shrink-0 text-end">
+                        <span class="fw-bold text-success">$${ticket.totalAmount.toFixed(2)}</span>
+                        <p class="text-muted mb-0" style="font-size: 0.8em;">${new Date(ticket.createdAt).toLocaleDateString()}</p>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = '<p class="text-muted text-center">No recent tickets found.</p>';
+        }
+    } catch (error) {
+        console.error('Error loading recent tickets:', error);
+        document.getElementById('recent-tickets').innerHTML = '<p class="text-danger text-center">Error loading recent tickets.</p>';
+    }
+}
+
+async function loadUpcomingEvents() {
+    try {
+        const response = await fetch('/api/events/starting-soon');
+        const data = await response.json();
+        
+        const container = document.getElementById('upcoming-events-list');
+        
+        if (data.events && data.events.length > 0) {
+            container.innerHTML = data.events.slice(0, 3).map(event => `
+                <div class="event-item d-flex align-items-center mb-3 p-3 border rounded">
+                    <div class="flex-shrink-0 me-3">
+                        <img src="${event.poster || '/images/default-poster.jpg'}" 
+                             alt="${event.name}" class="img-fluid rounded" 
+                             style="width: 80px; height: 80px; object-fit: cover;">
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">${event.name}</h6>
+                        <p class="text-muted mb-1 small">${event.description || 'No description available'}</p>
+                        <div class="d-flex gap-3 small text-muted">
+                            <span><i class="fas fa-calendar me-1"></i>${new Date(event.date).toLocaleDateString()}</span>
+                            <span><i class="fas fa-map-marker-alt me-1"></i>${event.location?.name || 'TBA'}</span>
+                        </div>
+                    </div>
+                    <div class="flex-shrink-0 text-end">
+                        <div class="mb-2">
+                            <span class="badge bg-primary">$${event.price?.min || 'TBA'}</span>
+                        </div>
+                        <a href="/events/${event.category}/${event._id}" 
+                           class="btn btn-sm btn-outline-primary">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = '<p class="text-muted text-center">No upcoming events found.</p>';
+        }
+    } catch (error) {
+        console.error('Error loading upcoming events:', error);
+        document.getElementById('upcoming-events-list').innerHTML = '<p class="text-danger text-center">Error loading upcoming events.</p>';
+    }
+}
+
+async function loadRecommendedEvents() {
+    try {
+        const response = await fetch('/api/events/featured');
+        const data = await response.json();
+        
+        const container = document.getElementById('recommended-events');
+        
+        if (data.events && data.events.length > 0) {
+            container.innerHTML = data.events.slice(0, 3).map(event => `
+                <div class="event-item d-flex align-items-center mb-3 p-3 border rounded">
+                    <div class="flex-shrink-0 me-3">
+                        <img src="${event.poster || '/images/default-poster.jpg'}" 
+                             alt="${event.name}" class="img-fluid rounded" 
+                             style="width: 80px; height: 80px; object-fit: cover;">
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">${event.name}</h6>
+                        <p class="text-muted mb-1 small">${event.description || 'No description available'}</p>
+                        <div class="d-flex gap-3 small text-muted">
+                            <span><i class="fas fa-calendar me-1"></i>${new Date(event.date).toLocaleDateString()}</span>
+                            <span><i class="fas fa-map-marker-alt me-1"></i>${event.location?.name || 'TBA'}</span>
+                        </div>
+                    </div>
+                    <div class="flex-shrink-0 text-end">
+                        <div class="mb-2">
+                            <span class="badge bg-primary">$${event.price?.min || 'TBA'}</span>
+                        </div>
+                        <a href="/events/${event.category}/${event._id}" 
+                           class="btn btn-sm btn-outline-primary">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = '<p class="text-muted text-center">No recommended events found.</p>';
+        }
+    } catch (error) {
+        console.error('Error loading recommended events:', error);
+        document.getElementById('recommended-events').innerHTML = '<p class="text-danger text-center">Error loading recommended events.</p>';
+    }
+}
+
+function shareReferral() {
+    const referralLink = `${window.location.origin}?ref=${'<%= user._id %>'}`;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: 'Join me on CursedTicket!',
+            text: 'Check out this amazing event ticketing platform!',
+            url: referralLink
+        });
+    } else {
+        // Fallback to clipboard
+        navigator.clipboard.writeText(referralLink).then(() => {
+            alert('Referral link copied to clipboard!');
+        });
+    }
+}
+</script>
+
+<style>
+.attendee-dashboard-page {
+    background-color: #f8f9fa;
+    min-height: calc(100vh - 100px);
+}
+
+.stat-card {
+    background-color: white;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.category-card {
+    background-color: white;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.category-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+.ticket-item, .event-item {
+    background-color: white;
+    border: 1px solid #e9ecef;
+    transition: all 0.2s ease-in-out;
+}
+
+.ticket-item:hover, .event-item:hover {
+    background-color: #e9f2ff;
+    border-color: #007bff;
+}
+
+.btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+    .attendee-dashboard-page .container {
+        padding: 1rem;
+    }
+    
+    .stat-card, .category-card {
+        margin-bottom: 1rem;
+    }
+    
+    .d-flex.gap-3 {
+        flex-direction: column;
+        gap: 0.5rem !important;
+    }
+    
+    .btn-lg {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+</style>
+
+<%- include('../partials/footer') %>

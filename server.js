@@ -6,6 +6,9 @@ const methodOverride = require('method-override');
 const path = require('path');
 require('dotenv').config();
 
+// Import utilities
+const { logEnvironmentStatus } = require('./utils/environment');
+
 // Import database connection
 const connectDB = require('./config/database');
 
@@ -83,7 +86,7 @@ app.get('/', async (req, res) => {
     res.render('index', { 
       title: 'CursedTicket - Premium Entertainment',
       user: req.session ? req.session.user : null,
-      featuredEvents: shuffledFeatured
+      featuredEvents: sortedFeatured
     });
   } catch (error) {
     console.error('Error loading homepage:', error);
@@ -256,19 +259,124 @@ app.get('/api/events/starting-soon', async (req, res) => {
 const eventRoutes = require('./routes/events');
 const ticketRoutes = require('./routes/tickets');
 const ticketRoutesNew = require('./routes/ticketRoutes');
-// const authRoutes = require('./routes/auth');
-// const userRoutes = require('./routes/users');
+const paymentRoutes = require('./routes/payments');
+const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/user');
+const searchRoutes = require('./routes/search');
+const attendeeRoutes = require('./routes/attendee');
+const organizerRoutes = require('./routes/organizer');
+const guestRoutes = require('./routes/guest');
+const adminRoutes = require('./routes/admin');
 
 // Use routes
 app.use('/events', eventRoutes);
-app.use('/tickets', ticketRoutes);
-app.use('/tickets', ticketRoutesNew);
-// app.use('/auth', authRoutes);
-// app.use('/users', userRoutes);
+// app.use('/tickets', ticketRoutes); // Disabled old ticket system
+// app.use('/tickets', ticketRoutesNew); // Disabled old ticket system
+app.use('/api/payments', paymentRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/search', searchRoutes);
+app.use('/auth', authRoutes.router);
+app.use('/attendee', attendeeRoutes);
+app.use('/organizer', organizerRoutes);
+app.use('/guest', guestRoutes);
+app.use('/admin', adminRoutes);
 
-// Redirect old my-tickets route to new tickets route
+// Debug checkout page
+app.get('/debug-checkout', (req, res) => {
+  res.render('debug-checkout', {
+    title: 'Debug Checkout - CursedTicket',
+    user: req.session ? req.session.user : null
+  });
+});
+
+// Checkout page
+app.get('/checkout', (req, res) => {
+  // Check if user is logged in
+  if (!req.session || !req.session.user) {
+    req.flash('error', 'Please login to proceed with checkout.');
+    return res.redirect('/auth/login?redirect=' + encodeURIComponent('/checkout'));
+  }
+  
+  // Check if user is admin or organizer
+  if (req.session.user.role === 'admin' || req.session.user.role === 'organizer') {
+    const role = req.session.user.role;
+    req.flash('error', `${role.charAt(0).toUpperCase() + role.slice(1)}s cannot purchase tickets.`);
+    return res.redirect(role === 'admin' ? '/admin/dashboard' : '/organizer/dashboard');
+  }
+  
+  res.render('checkout', {
+    title: 'Checkout - CursedTicket',
+    user: req.session.user
+  });
+});
+
+// Tickets page
+app.get('/tickets/:orderId', async (req, res) => {
+  try {
+    const Order = require('./models/Order');
+    const order = await Order.findById(req.params.orderId);
+    if (!order) {
+      req.flash('error', 'Order not found.');
+      return res.redirect('/');
+    }
+    res.render('tickets', {
+      title: 'Your Tickets - CursedTicket',
+      user: req.session ? req.session.user : null,
+      order: order
+    });
+  } catch (error) {
+    console.error('Error fetching order for tickets page:', error);
+    req.flash('error', 'Failed to load your tickets.');
+    res.redirect('/');
+  }
+});
+
+// My Tickets page
 app.get('/my-tickets', (req, res) => {
-  res.redirect('/tickets/my-tickets');
+  // Check if user is admin or organizer
+  if (req.session && req.session.user && (req.session.user.role === 'admin' || req.session.user.role === 'organizer')) {
+    const role = req.session.user.role;
+    req.flash('error', `${role.charAt(0).toUpperCase() + role.slice(1)}s cannot purchase tickets or view My Tickets.`);
+    return res.redirect(role === 'admin' ? '/admin/dashboard' : '/organizer/dashboard');
+  }
+  
+  res.render('my-tickets', {
+    title: 'My Tickets - CursedTicket',
+    user: req.session ? req.session.user : null
+  });
+});
+
+// User Dashboard page
+app.get('/user-dashboard', (req, res) => {
+  if (!req.session || !req.session.user) {
+    req.flash('error', 'Please log in to access your dashboard.');
+    return res.redirect('/auth/login');
+  }
+  
+  res.render('user-dashboard', {
+    title: 'User Dashboard - CursedTicket',
+    user: req.session.user
+  });
+});
+
+// Role-based Dashboard Redirect
+app.get('/dashboard', (req, res) => {
+  if (!req.session || !req.session.user) {
+    // Redirect guest users to guest dashboard
+    return res.redirect('/guest/dashboard');
+  }
+  
+  // Redirect based on user role
+  switch (req.session.user.role) {
+    case 'attendee':
+      return res.redirect('/attendee/dashboard');
+    case 'organizer':
+      return res.redirect('/organizer/dashboard');
+    case 'admin':
+      return res.redirect('/admin/dashboard');
+    default:
+      return res.redirect('/guest/dashboard');
+  }
 });
 
 // 404 handler
@@ -284,17 +392,18 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).render('500', { 
     title: 'Server Error',
-    user: req.session.user,
-    message: 'Something went wrong on our end. Please try again later.',
-    error: process.env.NODE_ENV === 'development' ? err?.message || 'Unknown error' : undefined
     user: req.session ? req.session.user : null,
+    message: 'Something went wrong on our end. Please try again later.',
     error: process.env.NODE_ENV === 'development' ? err : {}
   });
 });
 
 // Start server
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📱 Environment: ${process.env.NODE_ENV}`);
+  console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
+  
+  // Log environment status
+  logEnvironmentStatus();
 });

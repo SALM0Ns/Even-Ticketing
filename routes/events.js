@@ -76,6 +76,70 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get events by category (specific routes to avoid conflicts)
+router.get('/movies', async (req, res) => {
+  try {
+    const events = await Movie.find();
+    const eventsWithCategory = events.map(event => ({ ...event.toObject(), category: 'movies' }));
+    
+    res.render('events/index', {
+      title: 'Movies - CursedTicket',
+      events: eventsWithCategory,
+      currentCategory: 'movies',
+      searchQuery: ''
+    });
+  } catch (error) {
+    console.error('Error fetching movies:', error);
+    res.status(500).render('500', { 
+      title: 'Server Error',
+      message: 'Failed to load movies',
+      error: error?.message || 'Unknown error'
+    });
+  }
+});
+
+router.get('/stage-plays', async (req, res) => {
+  try {
+    const events = await StagePlays.find();
+    const eventsWithCategory = events.map(event => ({ ...event.toObject(), category: 'stage-plays' }));
+    
+    res.render('events/index', {
+      title: 'Stage Plays - CursedTicket',
+      events: eventsWithCategory,
+      currentCategory: 'stage-plays',
+      searchQuery: ''
+    });
+  } catch (error) {
+    console.error('Error fetching stage plays:', error);
+    res.status(500).render('500', { 
+      title: 'Server Error',
+      message: 'Failed to load stage plays',
+      error: error?.message || 'Unknown error'
+    });
+  }
+});
+
+router.get('/orchestra', async (req, res) => {
+  try {
+    const events = await LiveOrchestra.find();
+    const eventsWithCategory = events.map(event => ({ ...event.toObject(), category: 'orchestra' }));
+    
+    res.render('events/index', {
+      title: 'Live Orchestra - CursedTicket',
+      events: eventsWithCategory,
+      currentCategory: 'orchestra',
+      searchQuery: ''
+    });
+  } catch (error) {
+    console.error('Error fetching orchestra events:', error);
+    res.status(500).render('500', { 
+      title: 'Server Error',
+      message: 'Failed to load orchestra events',
+      error: error?.message || 'Unknown error'
+    });
+  }
+});
+
 // Get individual event by ID and category
 router.get('/:category/:id', async (req, res) => {
   try {
@@ -166,6 +230,15 @@ router.get('/:category/:id', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Check if id is a valid ObjectId (24 hex characters)
+    if (!/^[0-9a-fA-F]{24}$/.test(id)) {
+      return res.status(404).render('404', { 
+        title: 'Event Not Found',
+        message: 'Invalid event ID format'
+      });
+    }
+    
     let event = null;
     let category = null;
 

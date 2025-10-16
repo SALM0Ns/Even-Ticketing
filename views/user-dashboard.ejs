@@ -1,0 +1,329 @@
+<%- include('partials/header') %>
+
+<div class="user-dashboard-page bg-light">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Header -->
+                <div class="text-center mb-5">
+                    <div class="user-avatar mb-3">
+                        <i class="fas fa-user-circle text-primary" style="font-size: 4rem;"></i>
+                    </div>
+                    <h2 class="text-primary fw-bold">User Dashboard</h2>
+                    <p class="lead text-muted">Manage your account settings</p>
+                </div>
+
+                <!-- User Information Card -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-user me-2"></i>Profile Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="profile-form">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="userName" class="form-label">Full Name</label>
+                                        <input type="text" class="form-control" id="userName" value="<%= user.name %>" required>
+                                        <div class="form-text">This is how your name will appear on tickets and orders.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="userEmail" class="form-label">Email Address</label>
+                                        <input type="email" class="form-control" id="userEmail" value="<%= user.email %>" readonly>
+                                        <div class="form-text">Email cannot be changed. Contact support if needed.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="userRole" class="form-label">Account Type</label>
+                                        <input type="text" class="form-control" id="userRole" value="<%= user.role %>" readonly>
+                                        <div class="form-text">Your account role and permissions.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="memberSince" class="form-label">Member Since</label>
+                                        <input type="text" class="form-control" id="memberSince" value="<%= new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %>" readonly>
+                                        <div class="form-text">When you joined CursedTicket.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-center mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg" id="save-profile-btn">
+                                    <span id="button-text"><i class="fas fa-save me-2"></i>Save Changes</span>
+                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Account Statistics -->
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="fas fa-ticket-alt fa-2x text-primary mb-3"></i>
+                                <h5 class="card-title">Total Tickets</h5>
+                                <h3 class="text-primary" id="total-tickets">-</h3>
+                                <p class="card-text text-muted">Tickets purchased</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="fas fa-dollar-sign fa-2x text-success mb-3"></i>
+                                <h5 class="card-title">Total Spent</h5>
+                                <h3 class="text-success" id="total-spent">-</h3>
+                                <p class="card-text text-muted">Amount spent</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="fas fa-calendar-alt fa-2x text-info mb-3"></i>
+                                <h5 class="card-title">Upcoming Events</h5>
+                                <h3 class="text-info" id="upcoming-events">-</h3>
+                                <p class="card-text text-muted">Events to attend</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card mt-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Activity</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="recent-activity">
+                            <div class="text-center text-muted">
+                                <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                                <p>Loading recent activity...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const profileForm = document.getElementById('profile-form');
+    const saveBtn = document.getElementById('save-profile-btn');
+    const buttonText = document.getElementById('button-text');
+    const spinner = document.querySelector('.spinner-border');
+
+    // Load user statistics
+    await loadUserStatistics();
+    
+    // Load recent activity
+    await loadRecentActivity();
+
+    // Handle form submission
+    profileForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const newName = document.getElementById('userName').value.trim();
+        const currentName = '<%= user.name %>';
+        
+        if (newName === currentName) {
+            alert('No changes detected.');
+            return;
+        }
+
+        if (!newName) {
+            alert('Please enter a valid name.');
+            return;
+        }
+
+        // Show loading state
+        buttonText.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+        spinner.classList.remove('d-none');
+        saveBtn.disabled = true;
+
+        try {
+            const response = await fetch('/api/user/update-profile', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: newName
+                })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Failed to update profile');
+            }
+
+            // Success
+            alert('Profile updated successfully!');
+            
+            // Update the displayed name
+            document.getElementById('userName').value = newName;
+            
+            // Update header name if possible
+            const headerName = document.querySelector('.navbar .profile-link');
+            if (headerName) {
+                // Update the text content, keeping the icon
+                const icon = headerName.querySelector('i');
+                headerName.innerHTML = '';
+                if (icon) {
+                    headerName.appendChild(icon);
+                }
+                headerName.appendChild(document.createTextNode(' ' + newName));
+            }
+
+        } catch (error) {
+            alert(`Error: ${error.message}`);
+            console.error('Profile update error:', error);
+        } finally {
+            // Reset button state
+            buttonText.innerHTML = '<i class="fas fa-save me-2"></i>Save Changes';
+            spinner.classList.add('d-none');
+            saveBtn.disabled = false;
+        }
+    });
+});
+
+async function loadUserStatistics() {
+    try {
+        const response = await fetch('/api/user/statistics');
+        const result = await response.json();
+
+        if (result.success) {
+            document.getElementById('total-tickets').textContent = result.statistics.totalTickets || 0;
+            document.getElementById('total-spent').textContent = `$${(result.statistics.totalSpent || 0).toFixed(2)}`;
+            document.getElementById('upcoming-events').textContent = result.statistics.upcomingEvents || 0;
+        }
+    } catch (error) {
+        console.error('Error loading user statistics:', error);
+        document.getElementById('total-tickets').textContent = '0';
+        document.getElementById('total-spent').textContent = '$0.00';
+        document.getElementById('upcoming-events').textContent = '0';
+    }
+}
+
+async function loadRecentActivity() {
+    try {
+        const response = await fetch('/api/user/recent-activity');
+        const result = await response.json();
+
+        const activityContainer = document.getElementById('recent-activity');
+        
+        if (result.success && result.activities.length > 0) {
+            activityContainer.innerHTML = result.activities.map(activity => `
+                <div class="d-flex align-items-center mb-3">
+                    <div class="activity-icon me-3">
+                        <i class="fas fa-${activity.icon} text-${activity.color}"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">${activity.title}</h6>
+                        <p class="mb-0 text-muted">${activity.description}</p>
+                    </div>
+                    <div class="text-muted">
+                        <small>${activity.date}</small>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            activityContainer.innerHTML = `
+                <div class="text-center text-muted">
+                    <i class="fas fa-inbox fa-2x mb-3"></i>
+                    <p>No recent activity found.</p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading recent activity:', error);
+        document.getElementById('recent-activity').innerHTML = `
+            <div class="text-center text-muted">
+                <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                <p>Unable to load recent activity.</p>
+            </div>
+        `;
+    }
+}
+</script>
+
+<style>
+.user-dashboard-page {
+    min-height: 100vh;
+}
+
+.user-avatar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+    border: none;
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 123, 255, 0.1);
+    border-radius: 50%;
+}
+
+.form-control:read-only {
+    background-color: #f8f9fa;
+    border-color: #e9ecef;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 12px 30px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
+}
+
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+@media (max-width: 768px) {
+    .user-dashboard-page .container {
+        padding: 1rem;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+}
+</style>
+
+<%- include('partials/footer') %>

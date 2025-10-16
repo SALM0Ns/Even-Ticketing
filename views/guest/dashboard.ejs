@@ -1,0 +1,335 @@
+<%- include('../partials/header') %>
+
+<div class="guest-dashboard-page py-5">
+    <div class="container">
+        <!-- Welcome Section -->
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h1 class="display-4 mb-3">
+                    <i class="fas fa-ticket-alt me-3 text-primary"></i>
+                    Welcome to CursedTicket
+                </h1>
+                <p class="lead text-muted mb-4">Discover amazing events and purchase tickets with ease</p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="/auth/register" class="btn btn-primary btn-lg">
+                        <i class="fas fa-user-plus me-2"></i>Create Account
+                    </a>
+                    <a href="/auth/login" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Featured Events -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <h3 class="text-center mb-4">
+                    <i class="fas fa-star me-2"></i>Featured Events
+                </h3>
+                <div id="featured-events" class="row">
+                    <div class="col-12 text-center">
+                        <i class="fas fa-spinner fa-spin fa-2x text-muted mb-3"></i>
+                        <p class="text-muted">Loading featured events...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Event Categories -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <h3 class="text-center mb-4">
+                    <i class="fas fa-th-large me-2"></i>Browse by Category
+                </h3>
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <div class="category-card p-4 rounded shadow-sm text-center h-100">
+                            <i class="fas fa-film fa-4x text-primary mb-3"></i>
+                            <h4>Movies</h4>
+                            <p class="text-muted">Latest blockbusters, classics, and indie films</p>
+                            <a href="/events?category=movies" class="btn btn-outline-primary btn-lg">Browse Movies</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="category-card p-4 rounded shadow-sm text-center h-100">
+                            <i class="fas fa-theater-masks fa-4x text-success mb-3"></i>
+                            <h4>Stage Plays</h4>
+                            <p class="text-muted">Theater productions, musicals, and live performances</p>
+                            <a href="/events?category=stage-plays" class="btn btn-outline-success btn-lg">Browse Plays</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="category-card p-4 rounded shadow-sm text-center h-100">
+                            <i class="fas fa-music fa-4x text-warning mb-3"></i>
+                            <h4>Live Orchestra</h4>
+                            <p class="text-muted">Classical concerts, symphonies, and musical performances</p>
+                            <a href="/events?category=orchestra" class="btn btn-outline-warning btn-lg">Browse Concerts</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Coming Soon Events -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-clock me-2"></i>Coming Soon
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="coming-soon-events">
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                                <p>Loading upcoming events...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Why Choose CursedTicket -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <h3 class="text-center mb-4">
+                    <i class="fas fa-heart me-2"></i>Why Choose CursedTicket?
+                </h3>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="feature-card p-4 rounded shadow-sm text-center h-100">
+                            <i class="fas fa-shield-alt fa-3x text-primary mb-3"></i>
+                            <h5>Secure Booking</h5>
+                            <p class="text-muted">Safe and secure ticket purchasing with encrypted payments</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="feature-card p-4 rounded shadow-sm text-center h-100">
+                            <i class="fas fa-mobile-alt fa-3x text-success mb-3"></i>
+                            <h5>Mobile Friendly</h5>
+                            <p class="text-muted">Access your tickets anywhere with our mobile-optimized platform</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="feature-card p-4 rounded shadow-sm text-center h-100">
+                            <i class="fas fa-qrcode fa-3x text-warning mb-3"></i>
+                            <h5>QR Code Tickets</h5>
+                            <p class="text-muted">Digital tickets with QR codes for easy entry</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="feature-card p-4 rounded shadow-sm text-center h-100">
+                            <i class="fas fa-headset fa-3x text-info mb-3"></i>
+                            <h5>24/7 Support</h5>
+                            <p class="text-muted">Round-the-clock customer support for all your needs</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Call to Action -->
+        <div class="row">
+            <div class="col-12">
+                <div class="cta-section p-5 rounded shadow-sm text-center">
+                    <h3 class="mb-3">Ready to Get Started?</h3>
+                    <p class="lead text-muted mb-4">Join thousands of event-goers who trust CursedTicket for their entertainment needs</p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a href="/auth/register" class="btn btn-primary btn-lg">
+                            <i class="fas fa-rocket me-2"></i>Get Started Now
+                        </a>
+                        <a href="/events" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-search me-2"></i>Browse Events
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadFeaturedEvents();
+    await loadComingSoonEvents();
+});
+
+async function loadFeaturedEvents() {
+    try {
+        const response = await fetch('/api/events/featured');
+        const data = await response.json();
+        
+        const container = document.getElementById('featured-events');
+        
+        if (data.events && data.events.length > 0) {
+            container.innerHTML = data.events.slice(0, 6).map(event => `
+                <div class="col-md-4 mb-4">
+                    <div class="event-card card h-100 shadow-sm">
+                        <img src="${event.poster || '/images/default-poster.jpg'}" 
+                             class="card-img-top" alt="${event.name}"
+                             style="height: 250px; object-fit: cover;">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">${event.name}</h5>
+                            <p class="card-text text-muted small flex-grow-1">${event.description ? event.description.substring(0, 100) + '...' : 'No description available'}</p>
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge bg-primary">$${event.price?.min || 'TBA'}</span>
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar me-1"></i>${new Date(event.date).toLocaleDateString()}
+                                    </small>
+                                </div>
+                                <a href="/events/${event.category}/${event._id}" class="btn btn-outline-primary w-100">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = '<div class="col-12 text-center"><p class="text-muted">No featured events available at the moment.</p></div>';
+        }
+    } catch (error) {
+        console.error('Error loading featured events:', error);
+        document.getElementById('featured-events').innerHTML = '<div class="col-12 text-center"><p class="text-danger">Error loading featured events.</p></div>';
+    }
+}
+
+async function loadComingSoonEvents() {
+    try {
+        const response = await fetch('/api/events/coming-soon');
+        const data = await response.json();
+        
+        const container = document.getElementById('coming-soon-events');
+        
+        if (data.events && data.events.length > 0) {
+            container.innerHTML = data.events.slice(0, 4).map(event => `
+                <div class="event-item d-flex align-items-center mb-3 p-3 border rounded">
+                    <div class="flex-shrink-0 me-3">
+                        <img src="${event.poster || '/images/default-poster.jpg'}" 
+                             alt="${event.name}" class="img-fluid rounded" 
+                             style="width: 80px; height: 80px; object-fit: cover;">
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">${event.name}</h6>
+                        <p class="text-muted mb-1 small">${event.description ? event.description.substring(0, 80) + '...' : 'No description available'}</p>
+                        <div class="d-flex gap-3 small text-muted">
+                            <span><i class="fas fa-calendar me-1"></i>${new Date(event.date).toLocaleDateString()}</span>
+                            <span><i class="fas fa-map-marker-alt me-1"></i>${event.location?.name || 'TBA'}</span>
+                        </div>
+                    </div>
+                    <div class="flex-shrink-0 text-end">
+                        <div class="mb-2">
+                            <span class="badge bg-primary">$${event.price?.min || 'TBA'}</span>
+                        </div>
+                        <a href="/events/${event.category}/${event._id}" 
+                           class="btn btn-sm btn-outline-primary">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = '<p class="text-muted text-center">No upcoming events found.</p>';
+        }
+    } catch (error) {
+        console.error('Error loading coming soon events:', error);
+        document.getElementById('coming-soon-events').innerHTML = '<p class="text-danger text-center">Error loading upcoming events.</p>';
+    }
+}
+</script>
+
+<style>
+.guest-dashboard-page {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: calc(100vh - 100px);
+}
+
+.category-card, .feature-card {
+    background-color: white;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.category-card:hover, .feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.event-card {
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.event-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+}
+
+.event-item {
+    background-color: white;
+    border: 1px solid #e9ecef;
+    transition: all 0.2s ease-in-out;
+}
+
+.event-item:hover {
+    background-color: #e9f2ff;
+    border-color: #007bff;
+}
+
+.cta-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.cta-section h3, .cta-section p {
+    color: white;
+}
+
+.cta-section .btn-outline-primary {
+    border-color: white;
+    color: white;
+}
+
+.cta-section .btn-outline-primary:hover {
+    background-color: white;
+    color: #667eea;
+}
+
+.display-4 {
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+@media (max-width: 768px) {
+    .guest-dashboard-page .container {
+        padding: 1rem;
+    }
+    
+    .category-card, .feature-card {
+        margin-bottom: 1rem;
+    }
+    
+    .d-flex.gap-3 {
+        flex-direction: column;
+        gap: 0.5rem !important;
+    }
+    
+    .btn-lg {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .display-4 {
+        font-size: 2rem;
+    }
+}
+</style>
+
+<%- include('../partials/footer') %>

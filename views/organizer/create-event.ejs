@@ -128,7 +128,7 @@
                                 <div class="mb-3">
                                     <label for="image" class="form-label">Event Image</label>
                                     <input type="file" class="form-control" id="image" name="image" accept="image/*">
-                                    <div class="form-text">Upload an image for your event (optional)</div>
+                                    <div class="form-text">Upload a high-resolution image for your event (max 20MB) - supports 4K, 8K, and professional photos</div>
                                 </div>
                             </div>
                         </div>
@@ -226,6 +226,28 @@
             loadLocations();
         });
         
+        // File size validation
+        function validateFileSize(file, maxSizeMB = 20) {
+            const maxSizeBytes = maxSizeMB * 1024 * 1024;
+            if (file.size > maxSizeBytes) {
+                alert(`File "${file.name}" is too large. Maximum size is ${maxSizeMB}MB.`);
+                return false;
+            }
+            return true;
+        }
+        
+        // Add file validation to image input
+        const imageInput = document.getElementById('image');
+        if (imageInput) {
+            imageInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    if (!validateFileSize(this.files[0])) {
+                        this.value = ''; // Clear the input
+                    }
+                }
+            });
+        }
+        
         // Form validation
         document.querySelector('form').addEventListener('submit', function(e) {
             const selectedLocationId = locationSelect.value;
@@ -234,6 +256,15 @@
                 alert('Please select a venue before creating the event.');
                 locationSelect.focus();
                 return false;
+            }
+            
+            // Validate image file size if provided
+            const imageInput = document.getElementById('image');
+            if (imageInput && imageInput.files && imageInput.files[0]) {
+                if (!validateFileSize(imageInput.files[0])) {
+                    e.preventDefault();
+                    return false;
+                }
             }
         });
         

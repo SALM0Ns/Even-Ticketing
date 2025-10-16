@@ -51,7 +51,20 @@ const TicketSchema = new mongoose.Schema({
   },
   status: { 
     type: String, 
+    enum: ['active', 'cancelled', 'used', 'expired'],
     default: 'active' 
+  },
+  cancelledAt: {
+    type: Date,
+    default: null
+  },
+  cancellationReason: {
+    type: String,
+    default: null
+  },
+  usedAt: {
+    type: Date,
+    default: null
   }
 });
 
@@ -69,5 +82,12 @@ TicketSchema.pre('validate', function(next) {
 
   next();
 });
+
+// Static method to get tickets for multiple events
+TicketSchema.statics.getTicketsForEvents = function(eventIds) {
+  return this.find({ event: { $in: eventIds } })
+    .populate('event')
+    .populate('user', 'name email');
+};
 
 module.exports = mongoose.model('Ticket', TicketSchema);

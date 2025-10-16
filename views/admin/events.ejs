@@ -1,0 +1,434 @@
+<%- include('../partials/header') %>
+
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 text-white mb-2">
+                        <i class="fas fa-calendar-alt me-2 text-primary"></i>Manage Events
+                    </h1>
+                    <p class="text-muted mb-0">View, edit, and manage all events in the system</p>
+                </div>
+                <div>
+                    <a href="/organizer/events/create" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Create New Event
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-dark border-secondary">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label text-white">Category</label>
+                            <select name="category" class="form-select bg-dark text-white border-secondary">
+                                <option value="all" <%= currentCategory === 'all' ? 'selected' : '' %>>All Categories</option>
+                                <option value="movies" <%= currentCategory === 'movies' ? 'selected' : '' %>>Movies</option>
+                                <option value="stage-plays" <%= currentCategory === 'stage-plays' ? 'selected' : '' %>>Stage Plays</option>
+                                <option value="orchestra" <%= currentCategory === 'orchestra' ? 'selected' : '' %>>Live Orchestra</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-white">Status</label>
+                            <select name="status" class="form-select bg-dark text-white border-secondary">
+                                <option value="all" <%= currentStatus === 'all' ? 'selected' : '' %>>All Status</option>
+                                <option value="upcoming" <%= currentStatus === 'upcoming' ? 'selected' : '' %>>Upcoming</option>
+                                <option value="ongoing" <%= currentStatus === 'ongoing' ? 'selected' : '' %>>Ongoing</option>
+                                <option value="completed" <%= currentStatus === 'completed' ? 'selected' : '' %>>Completed</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-filter me-1"></i>Filter
+                            </button>
+                            <a href="/admin/events" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>Clear
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Events Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-dark border-secondary">
+                <div class="card-header bg-secondary bg-opacity-25 border-secondary">
+                    <h5 class="mb-0 text-white">
+                        <i class="fas fa-list me-2"></i>Events List
+                        <span class="badge bg-primary ms-2"><%= events.length %> events</span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <% if (events && events.length > 0) { %>
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover mb-0">
+                                <thead class="table-secondary">
+                                    <tr>
+                                        <th>Event</th>
+                                        <th>Category</th>
+                                        <th>Status</th>
+                                        <th>Tickets</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% events.forEach(event => { %>
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="<%= event.poster || event.image || '/images/default-event.jpg' %>" 
+                                                         alt="<%= event.name %>" 
+                                                         class="rounded me-3" 
+                                                         style="width: 60px; height: 60px; object-fit: cover;">
+                                                    <div>
+                                                        <h6 class="mb-0 text-white"><%= event.name %></h6>
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-map-marker-alt me-1"></i>
+                                                            <%= event.location?.name || 'TBA' %>
+                                                        </small>
+                                                        <br>
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-user me-1"></i>
+                                                            Organizer: <%= event.organizer?.name || 'Unknown' %>
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-primary">
+                                                    <%= event.category === 'movies' ? 'Movie' : 
+                                                        event.category === 'stage-plays' ? 'Stage Play' : 
+                                                        'Live Orchestra' %>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-<%= event.status === 'upcoming' ? 'success' : 
+                                                                    event.status === 'ongoing' ? 'warning' : 'secondary' %>">
+                                                    <%= event.status || 'upcoming' %>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="text-center">
+                                                    <div class="text-success fw-bold"><%= event.ticketsSold || 0 %></div>
+                                                    <small class="text-muted">sold</small>
+                                                    <div class="text-info fw-bold"><%= event.ticketsLeft || 0 %></div>
+                                                    <small class="text-muted">left</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div>
+                                                    <div class="text-white fw-semibold">
+                                                        <%= new Date(event.date).toLocaleDateString() %>
+                                                    </div>
+                                                    <small class="text-muted">
+                                                        <%= new Date(event.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) %>
+                                                    </small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="/admin/events/<%= event.category %>/<%= event._id %>" 
+                                                       class="btn btn-outline-primary" 
+                                                       title="View Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="/admin/events/<%= event.category %>/<%= event._id %>/edit" 
+                                                       class="btn btn-outline-warning" 
+                                                       title="Edit Event">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <button class="btn btn-outline-danger" 
+                                                            onclick="deleteEvent('<%= event._id %>', '<%= event.category %>', '<%= event.name %>')"
+                                                            title="Delete Event">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    <% } else { %>
+                        <div class="text-center py-5">
+                            <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+                            <h5 class="text-white">No Events Found</h5>
+                            <p class="text-muted">No events match your current filters.</p>
+                            <a href="/organizer/events/create" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>Create First Event
+                            </a>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-white">
+                    <i class="fas fa-exclamation-triangle me-2 text-warning"></i>Confirm Event Deletion
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-warning me-2"></i>Warning: This action cannot be undone!
+                    </h6>
+                    <p class="mb-0">You are about to permanently delete this event from the system.</p>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card bg-secondary bg-opacity-25 border-secondary">
+                            <div class="card-body">
+                                <h6 class="text-white mb-3">
+                                    <i class="fas fa-calendar-alt me-2"></i>Event Details
+                                </h6>
+                                <p class="mb-1"><strong>Name:</strong> <span id="deleteEventName" class="text-warning"></span></p>
+                                <p class="mb-1"><strong>Category:</strong> <span id="deleteEventCategory" class="text-info"></span></p>
+                                <p class="mb-1"><strong>Date:</strong> <span id="deleteEventDate" class="text-white"></span></p>
+                                <p class="mb-0"><strong>Location:</strong> <span id="deleteEventLocation" class="text-white"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-secondary bg-opacity-25 border-secondary">
+                            <div class="card-body">
+                                <h6 class="text-white mb-3">
+                                    <i class="fas fa-ticket-alt me-2"></i>Ticket Information
+                                </h6>
+                                <p class="mb-1"><strong>Tickets Sold:</strong> <span id="deleteEventTicketsSold" class="text-success"></span></p>
+                                <p class="mb-1"><strong>Tickets Left:</strong> <span id="deleteEventTicketsLeft" class="text-info"></span></p>
+                                <p class="mb-1"><strong>Total Revenue:</strong> <span id="deleteEventRevenue" class="text-warning"></span></p>
+                                <p class="mb-0"><strong>Refund Amount:</strong> <span id="deleteEventRefund" class="text-danger fw-bold"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mt-3">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-info-circle me-2"></i>What will happen:
+                    </h6>
+                    <ul class="mb-0">
+                        <li><strong>Event will be permanently deleted</strong> from the database</li>
+                        <li><strong>All purchased tickets will be marked as "Cancelled"</strong> with a red strikethrough</li>
+                        <li><strong>Full refunds will be processed</strong> for all ticket purchases</li>
+                        <li><strong>Customers will be notified</strong> via email about the cancellation</li>
+                        <li><strong>Event organizer will be notified</strong> about the deletion</li>
+                    </ul>
+                </div>
+
+                <div class="form-check mt-3">
+                    <input class="form-check-input" type="checkbox" id="confirmCheckbox">
+                    <label class="form-check-label text-white" for="confirmCheckbox">
+                        I understand that this action will permanently delete the event and process refunds for all customers.
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmDelete" disabled>
+                    <i class="fas fa-trash me-1"></i>Delete Event & Process Refunds
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let eventToDelete = null;
+
+async function deleteEvent(eventId, category, eventName) {
+    eventToDelete = { id: eventId, category: category };
+    
+    // Show loading state
+    document.getElementById('deleteEventName').textContent = 'Loading...';
+    document.getElementById('deleteEventCategory').textContent = 'Loading...';
+    document.getElementById('deleteEventDate').textContent = 'Loading...';
+    document.getElementById('deleteEventLocation').textContent = 'Loading...';
+    document.getElementById('deleteEventTicketsSold').textContent = 'Loading...';
+    document.getElementById('deleteEventTicketsLeft').textContent = 'Loading...';
+    document.getElementById('deleteEventRevenue').textContent = 'Loading...';
+    document.getElementById('deleteEventRefund').textContent = 'Loading...';
+    
+    // Show modal first
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    
+    try {
+        // Fetch event details
+        const response = await fetch(`/admin/events/${category}/${eventId}/details`);
+        const eventData = await response.json();
+        
+        if (eventData.success) {
+            const event = eventData.event;
+            
+            // Populate modal with event data
+            document.getElementById('deleteEventName').textContent = event.name;
+            document.getElementById('deleteEventCategory').textContent = 
+                event.category === 'movies' ? 'Movie' : 
+                event.category === 'stage-plays' ? 'Stage Play' : 'Live Orchestra';
+            document.getElementById('deleteEventDate').textContent = 
+                new Date(event.date).toLocaleDateString() + ' ' + 
+                new Date(event.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('deleteEventLocation').textContent = event.location?.name || 'TBA';
+            document.getElementById('deleteEventTicketsSold').textContent = event.ticketsSold || 0;
+            document.getElementById('deleteEventTicketsLeft').textContent = event.ticketsLeft || 0;
+            
+            // Calculate revenue and refund
+            const totalRevenue = (event.ticketsSold || 0) * (event.price || 0);
+            document.getElementById('deleteEventRevenue').textContent = `฿${totalRevenue.toLocaleString()}`;
+            document.getElementById('deleteEventRefund').textContent = `฿${totalRevenue.toLocaleString()}`;
+        } else {
+            // Fallback to basic info
+            document.getElementById('deleteEventName').textContent = eventName;
+            document.getElementById('deleteEventCategory').textContent = 
+                category === 'movies' ? 'Movie' : 
+                category === 'stage-plays' ? 'Stage Play' : 'Live Orchestra';
+            document.getElementById('deleteEventDate').textContent = 'Unknown';
+            document.getElementById('deleteEventLocation').textContent = 'Unknown';
+            document.getElementById('deleteEventTicketsSold').textContent = 'Unknown';
+            document.getElementById('deleteEventTicketsLeft').textContent = 'Unknown';
+            document.getElementById('deleteEventRevenue').textContent = 'Unknown';
+            document.getElementById('deleteEventRefund').textContent = 'Unknown';
+        }
+    } catch (error) {
+        console.error('Error fetching event details:', error);
+        // Fallback to basic info
+        document.getElementById('deleteEventName').textContent = eventName;
+        document.getElementById('deleteEventCategory').textContent = 
+            category === 'movies' ? 'Movie' : 
+            category === 'stage-plays' ? 'Stage Play' : 'Live Orchestra';
+        document.getElementById('deleteEventDate').textContent = 'Unknown';
+        document.getElementById('deleteEventLocation').textContent = 'Unknown';
+        document.getElementById('deleteEventTicketsSold').textContent = 'Unknown';
+        document.getElementById('deleteEventTicketsLeft').textContent = 'Unknown';
+        document.getElementById('deleteEventRevenue').textContent = 'Unknown';
+        document.getElementById('deleteEventRefund').textContent = 'Unknown';
+    }
+}
+
+// Enable/disable delete button based on checkbox
+document.getElementById('confirmCheckbox').addEventListener('change', function() {
+    document.getElementById('confirmDelete').disabled = !this.checked;
+});
+
+document.getElementById('confirmDelete').addEventListener('click', async function() {
+    if (!eventToDelete) return;
+    
+    // Show loading state
+    this.disabled = true;
+    this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing...';
+    
+    try {
+        const response = await fetch(`/admin/events/${eventToDelete.category}/${eventToDelete.id}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Show success message
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                <i class="fas fa-check-circle me-2"></i>${result.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.container-fluid').insertBefore(alertDiv, document.querySelector('.row'));
+            
+            // Reload page after a short delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else {
+            // Show error message
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                <i class="fas fa-exclamation-circle me-2"></i>${result.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.container-fluid').insertBefore(alertDiv, document.querySelector('.row'));
+            
+            // Reset button
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-trash me-1"></i>Delete Event & Process Refunds';
+        }
+    } catch (error) {
+        console.error('Delete error:', error);
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+        alertDiv.innerHTML = `
+            <i class="fas fa-exclamation-circle me-2"></i>Failed to delete event. Please try again.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.querySelector('.container-fluid').insertBefore(alertDiv, document.querySelector('.row'));
+        
+        // Reset button
+        this.disabled = false;
+        this.innerHTML = '<i class="fas fa-trash me-1"></i>Delete Event & Process Refunds';
+    }
+    
+    // Close modal
+    bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+    eventToDelete = null;
+    
+    // Reset checkbox
+    document.getElementById('confirmCheckbox').checked = false;
+    document.getElementById('confirmDelete').disabled = true;
+});
+</script>
+
+<style>
+.table-hover tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.btn-group .btn {
+    border-radius: 0;
+}
+
+.btn-group .btn:first-child {
+    border-top-left-radius: 0.375rem;
+    border-bottom-left-radius: 0.375rem;
+}
+
+.btn-group .btn:last-child {
+    border-top-right-radius: 0.375rem;
+    border-bottom-right-radius: 0.375rem;
+}
+
+.card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3) !important;
+}
+</style>
+
+<%- include('../partials/footer') %>

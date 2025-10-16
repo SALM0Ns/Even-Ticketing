@@ -1,253 +1,684 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Tickets - CursedTicket</title>
+<%- include('partials/header') %>
 
-  <!-- ✅ Bootstrap 5 -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Bootstrap Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <!-- QRCode.js -->
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<div class="my-tickets-page">
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-ticket-alt me-2"></i>My Tickets
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="tickets-container">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Loading your tickets...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-  <style>
-    body {
-      background: linear-gradient(135deg, #0e0e10 0%, #1a1a1d 50%, #2c2c2f 100%);
-      color: #f3f3f3;
-      font-family: 'Poppins', sans-serif;
-      padding: 40px 0;
-      min-height: 100vh;
+<%- include('partials/footer') %>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const ticketsContainer = document.getElementById('tickets-container');
+    
+    try {
+        // Get user email from session or prompt
+        const userEmail = '<%= typeof user !== "undefined" && user ? user.email : "" %>';
+        
+        if (!userEmail) {
+            ticketsContainer.innerHTML = `
+                <div class="alert alert-warning">
+                    <h5>Please log in to view your tickets</h5>
+                    <p>You need to be logged in to see your purchased tickets.</p>
+                    <a href="/auth/login" class="btn btn-primary">Login</a>
+                </div>
+            `;
+            return;
+        }
+
+        // Fetch user tickets
+        const response = await fetch(`/api/payments/user-tickets?email=${encodeURIComponent(userEmail)}`);
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to fetch tickets');
+        }
+
+        if (result.tickets.length === 0) {
+            ticketsContainer.innerHTML = `
+                <div class="alert alert-info">
+                    <h5>No tickets found</h5>
+                    <p>You haven't purchased any tickets yet.</p>
+                    <a href="/" class="btn btn-primary">Browse Events</a>
+                </div>
+            `;
+            return;
+        }
+
+        // Display E-Tickets
+        ticketsContainer.innerHTML = result.tickets.map(ticket => {
+            return ticket.tickets.map((individualTicket, index) => {
+                const ticketHtml = createETicketForMyTickets(ticket, individualTicket, index);
+                
+                // Generate QR Code for each ticket
+                setTimeout(() => {
+                    generateQRCodeForMyTickets(individualTicket.ticketId, ticket, individualTicket);
+                }, 100);
+                
+                return ticketHtml;
+            }).join('');
+        }).join('');
+
+    } catch (error) {
+        console.error('Error loading tickets:', error);
+        ticketsContainer.innerHTML = `
+            <div class="alert alert-danger">
+                <h5>Error loading tickets</h5>
+                <p>${error.message}</p>
+                <button class="btn btn-primary" onclick="location.reload()">Try Again</button>
+            </div>
+        `;
     }
+});
 
-    .page-title {
-      background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      font-weight: 700;
-      text-shadow: 0 0 30px rgba(255, 107, 107, 0.3);
+function getStatusColor(status) {
+    switch (status) {
+        case 'active': return 'success';
+        case 'used': return 'info';
+        case 'cancelled': return 'danger';
+        case 'refunded': return 'warning';
+        default: return 'secondary';
     }
+}
 
-    .ticket-card {
-      background: rgba(26, 26, 29, 0.9);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 20px;
-      overflow: hidden;
-      transition: all 0.4s ease;
-      position: relative;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+function printTicket(ticketId) {
+    // TODO: Implement print functionality
+    alert('Print functionality coming soon!');
+}
+
+function downloadTicket(ticketId) {
+    // TODO: Implement download functionality
+    alert('Download functionality coming soon!');
+}
+
+function cancelTicket(ticketId) {
+    if (confirm('Are you sure you want to cancel this ticket?')) {
+        // TODO: Implement cancel functionality
+        alert('Cancel functionality coming soon!');
     }
+}
 
-    .ticket-card:hover {
-      transform: translateY(-10px) scale(1.02);
-      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+// Create E-Ticket for My Tickets page
+function createETicketForMyTickets(ticket, individualTicket, index) {
+    const eventType = ticket.event.eventType.toLowerCase();
+    let colorClass, colorHex, iconClass, eventTypeText;
+    
+    // Determine colors and icons based on event type
+    switch (eventType) {
+        case 'movies':
+        case 'movie':
+            colorClass = 'movie-ticket';
+            colorHex = '#dc3545'; // Red
+            iconClass = 'fas fa-film';
+            eventTypeText = 'MOVIE';
+            break;
+        case 'stage-plays':
+        case 'stageplays':
+            colorClass = 'stage-ticket';
+            colorHex = '#0d6efd'; // Blue
+            iconClass = 'fas fa-theater-masks';
+            eventTypeText = 'STAGE PLAY';
+            break;
+        case 'orchestra':
+        case 'live-orchestra':
+        case 'liveorchestra':
+            colorClass = 'orchestra-ticket';
+            colorHex = '#ffc107'; // Gold
+            iconClass = 'fas fa-music';
+            eventTypeText = 'LIVE ORCHESTRA';
+            break;
+        default:
+            colorClass = 'default-ticket';
+            colorHex = '#6c757d'; // Gray
+            iconClass = 'fas fa-ticket-alt';
+            eventTypeText = 'EVENT';
     }
+    
+    const showDate = new Date(ticket.event.showDate);
+    const dateStr = showDate.toLocaleDateString('en-US', { 
+        weekday: 'short', 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+    });
+    const timeStr = showDate.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    });
+    
+    // Check if ticket is cancelled
+    const isCancelled = ticket.status === 'cancelled';
+    const cancelledClass = isCancelled ? 'cancelled-ticket' : '';
+    const cancelledOverlay = isCancelled ? '<div class="cancelled-overlay"><span class="cancelled-text">CANCELLED</span></div>' : '';
+    
+    return `
+        <div class="col-lg-6 mb-4">
+            <div class="e-ticket ${colorClass} ${cancelledClass}" data-ticket-id="${individualTicket.ticketId}">
+                ${cancelledOverlay}
+                <!-- Ticket Stub (Left Side) -->
+                <div class="ticket-stub">
+                    <div class="stub-header" style="background-color: ${colorHex}">
+                        <div class="stub-title">E-TICKET</div>
+                        <div class="stub-type">${eventTypeText}</div>
+                    </div>
+                    <div class="stub-content">
+                        <div class="stub-event-name">${ticket.event.eventName}</div>
+                        <div class="stub-date">${dateStr}</div>
+                        <div class="stub-venue">${ticket.event.venue.name}</div>
+                        <div class="stub-address">${ticket.event.venue.address}</div>
+                        <div class="stub-city">${ticket.event.venue.city}</div>
+                    </div>
+                    <div class="stub-qr">
+                        <div class="qr-code-container">
+                            <img id="qr-code-${individualTicket.ticketId}" class="qr-code-image" alt="QR Code" />
+                            <div class="qr-text">${isCancelled ? 'CANCELLED' : 'SCAN FOR ENTRY'}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Main Ticket (Right Side) -->
+                <div class="ticket-main">
+                    <div class="ticket-header">
+                        <div class="event-info">
+                            <h3 class="event-name">${ticket.event.eventName}</h3>
+                            <div class="event-meta">
+                                <span class="event-date">${dateStr}</span>
+                                <span class="event-time">${timeStr}</span>
+                            </div>
+                        </div>
+                        <div class="event-type-badge" style="background-color: ${colorHex}">
+                            <i class="${iconClass}"></i>
+                            <span>${eventTypeText}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="ticket-body">
+                        <div class="ticket-details">
+                            <div class="detail-row">
+                                <div class="detail-label">Ticket ID:</div>
+                                <div class="detail-value">${individualTicket.ticketId}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Name:</div>
+                                <div class="detail-value">${ticket.customer.name}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Seat:</div>
+                                <div class="detail-value">${individualTicket.seatNumber} (${individualTicket.seatType.toUpperCase()})</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Price:</div>
+                                <div class="detail-value">$${individualTicket.price.toFixed(2)}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Status:</div>
+                                <div class="detail-value">
+                                    <span class="badge bg-${getStatusColor(ticket.status)}">${ticket.status.toUpperCase()}</span>
+                                </div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Email:</div>
+                                <div class="detail-value">${ticket.customer.email}</div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    
+                    <div class="ticket-footer">
+                        <div class="venue-info">
+                            <div class="venue-name">${ticket.event.venue.name}</div>
+                            <div class="venue-address">${ticket.event.venue.address}, ${ticket.event.venue.city}</div>
+                        </div>
+                        <div class="website">WWW.CURSEDTICKET.COM</div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="ticket-actions mt-3 pt-3 border-top">
+                        <div class="d-flex gap-2 justify-content-center">
+                            ${!isCancelled ? `
+                                <button class="btn btn-outline-primary btn-sm" onclick="printTicket('${individualTicket.ticketId}')">
+                                    <i class="fas fa-print me-1"></i>Print
+                                </button>
+                                <button class="btn btn-outline-success btn-sm" onclick="downloadTicket('${individualTicket.ticketId}')">
+                                    <i class="fas fa-download me-1"></i>Download
+                                </button>
+                                ${ticket.status === 'active' ? `
+                                    <button class="btn btn-outline-warning btn-sm" onclick="cancelTicket('${individualTicket.ticketId}')">
+                                        <i class="fas fa-times me-1"></i>Cancel
+                                    </button>
+                                ` : ''}
+                            ` : `
+                                <div class="text-center text-muted">
+                                    <i class="fas fa-ban me-1"></i>Ticket Cancelled
+                                    ${ticket.cancellationReason ? `<br><small>Reason: ${ticket.cancellationReason}</small>` : ''}
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
 
-    .ticket-poster {
-      width: 100%;
-      height: 220px;
-      object-fit: cover;
-      transition: transform 0.3s ease;
+// Generate QR Code for My Tickets page
+function generateQRCodeForMyTickets(ticketId, ticket, individualTicket) {
+    // Create unique ticket data for QR code
+    const qrDataString = `BEGIN:VEVENT
+SUMMARY:${ticket.event.eventName}
+LOCATION:${ticket.event.venue.name}
+DESCRIPTION:Ticket ID: ${ticketId} | Seat: ${individualTicket.seatNumber} | Customer: ${ticket.customer.name}
+DTSTART:${new Date(ticket.event.showDate).toISOString().replace(/[-:]/g, '').split('.')[0]}Z
+END:VEVENT`;
+    
+    // Generate QR code URL using TEC-IT service
+    const qrCodeUrl = `https://barcode.tec-it.com/barcode.ashx?data=${encodeURIComponent(qrDataString)}&code=QRCode_Events&eclevel=L&size=4`;
+    
+    // Set QR code image
+    const qrImage = document.getElementById(`qr-code-${ticketId}`);
+    if (qrImage) {
+        qrImage.src = qrCodeUrl;
+        qrImage.onload = function() {
+            console.log(`QR Code generated for ticket: ${ticketId}`);
+        };
+        qrImage.onerror = function() {
+            console.error(`Failed to load QR Code for ticket: ${ticketId}`);
+            // Fallback to placeholder
+            qrImage.style.display = 'none';
+            qrImage.parentElement.innerHTML = `
+                <div class="qr-placeholder">
+                    <i class="fas fa-qrcode"></i>
+                    <div class="qr-text">QR CODE</div>
+                </div>
+            `;
+        };
     }
+}
+</script>
 
-    .ticket-card:hover .ticket-poster {
-      transform: scale(1.05);
+<style>
+/* Import E-Ticket styles from tickets.ejs */
+.e-ticket {
+    display: flex;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-bottom: 2rem;
+    position: relative;
+    max-width: 600px;
+    margin: 0 auto 2rem auto;
+}
+
+.e-ticket::before {
+    content: '';
+    position: absolute;
+    left: 30%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 8px,
+        #ddd 8px,
+        #ddd 16px
+    );
+    z-index: 1;
+}
+
+/* Ticket Stub (Left Side) */
+.ticket-stub {
+    width: 30%;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.stub-header {
+    padding: 1rem;
+    color: white;
+    text-align: center;
+    position: relative;
+}
+
+.stub-title {
+    font-size: 0.8rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-bottom: 0.25rem;
+}
+
+.stub-type {
+    font-size: 0.7rem;
+    opacity: 0.9;
+    letter-spacing: 0.5px;
+}
+
+.stub-content {
+    padding: 1rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.stub-event-name {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+}
+
+.stub-date {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.stub-venue, .stub-address, .stub-city {
+    font-size: 0.7rem;
+    color: #666;
+    margin-bottom: 0.25rem;
+}
+
+.stub-qr {
+    padding: 0.5rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.stub-qr .qr-code-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.stub-qr .qr-code-image {
+    width: 150px;
+    height: 150px;
+    border-radius: 8px;
+    border: 2px solid #ddd;
+    background: white;
+}
+
+.stub-qr .qr-text {
+    font-size: 0.6rem;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    margin-top: 0.25rem;
+    text-align: center;
+    color: #666;
+}
+
+/* Main Ticket (Right Side) */
+.ticket-main {
+    width: 70%;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.ticket-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.event-info {
+    flex: 1;
+}
+
+.event-name {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.2;
+}
+
+.event-meta {
+    display: flex;
+    gap: 1rem;
+}
+
+.event-date, .event-time {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.event-type-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
+.ticket-body {
+    display: flex;
+    gap: 2rem;
+    flex: 1;
+    margin-bottom: 1.5rem;
     }
 
     .ticket-details {
-      padding: 20px;
-    }
+    flex: 1;
+}
 
-    .ticket-title {
+.detail-row {
+    display: flex;
+    margin-bottom: 0.75rem;
+    align-items: center;
+}
+
+.detail-label {
       font-weight: 600;
-      font-size: 1.25rem;
-      margin-bottom: 15px;
+    color: #555;
+    min-width: 80px;
+    font-size: 0.9rem;
     }
 
-    .ticket-info {
-      color: #b8b8b8;
+.detail-value {
+    color: #333;
       font-size: 0.9rem;
-      margin-bottom: 8px;
+    word-break: break-all;
+}
+
+
+.ticket-footer {
       display: flex;
+    justify-content: space-between;
       align-items: center;
-    }
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
 
-    .ticket-info i {
-      color: #4ecdc4;
-      margin-right: 8px;
-    }
+.venue-info {
+    flex: 1;
+}
 
-    .status-badge {
-      display: inline-block;
-      padding: 8px 16px;
-      border-radius: 25px;
+.venue-name {
+    font-weight: 600;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+.venue-address {
+    color: #666;
+    font-size: 0.8rem;
+}
+
+.website {
+    font-size: 0.7rem;
+    color: #999;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+/* Color Variations */
+.movie-ticket .stub-header {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
+.stage-ticket .stub-header {
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+}
+
+.orchestra-ticket .stub-header {
+    background: linear-gradient(135deg, #ffc107 0%, #ffca2c 100%);
+    color: #000;
+}
+
+.orchestra-ticket .stub-title,
+.orchestra-ticket .stub-type {
+    color: #000;
+}
+
+/* Action Buttons */
+.ticket-actions {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.ticket-actions .btn {
       font-size: 0.8rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      margin-top: 15px;
-      color: white;
-    }
+    padding: 0.375rem 0.75rem;
+}
 
-    .status-active {
-      background: linear-gradient(45deg, #00b894, #00cec9);
-      box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3);
+/* Print Styles */
+@media print {
+    .btn, .card-header, .ticket-actions {
+        display: none !important;
     }
-
-    .status-expired {
-      background: linear-gradient(45deg, #d63031, #e17055);
-      box-shadow: 0 4px 15px rgba(214, 48, 49, 0.3);
+    
+    .e-ticket {
+        break-inside: avoid;
+        margin-bottom: 1rem;
+        box-shadow: none;
+        border: 1px solid #ddd;
     }
-
-    .qr-section {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 15px;
-      padding: 20px;
-      text-align: center;
-      margin-top: 20px;
+    
+    .my-tickets-page {
+        background: white !important;
     }
+}
 
-    .qr-container {
-      width: 144px;
-      height: 144px;
-      margin: 0 auto 10px;
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 12px;
-      overflow: hidden;
+/* Cancelled Ticket Styles */
+.cancelled-ticket {
+    position: relative;
+    opacity: 0.7;
+    filter: grayscale(0.3);
+}
+
+.cancelled-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(220, 53, 69, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.cancelled-text {
+    background: #dc3545;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+    transform: rotate(-15deg);
+}
+
+.cancelled-ticket .ticket-stub,
+.cancelled-ticket .ticket-main {
+    text-decoration: line-through;
+    text-decoration-color: #dc3545;
+    text-decoration-thickness: 2px;
+}
+
+.cancelled-ticket .stub-title,
+.cancelled-ticket .event-name,
+.cancelled-ticket .detail-value {
+    text-decoration: line-through;
+    text-decoration-color: #dc3545;
+    text-decoration-thickness: 2px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .e-ticket {
+        flex-direction: column;
     }
-
-    .qr-container canvas {
-      position: absolute !important;
-      top: 50% !important;
-      left: 50% !important;
-      transform: translate(-50%, -50%) rotate(0deg) !important;
-      animation: none !important;
-      transition: none !important;
-      display: block !important;
-      width: 120px !important;
-      height: 120px !important;
-      z-index: 2 !important;
+    
+    .ticket-stub {
+        width: 100%;
+        min-height: 200px;
     }
-
-    .verification-text {
-      color: #888;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+    
+    .ticket-main {
+        width: 100%;
     }
-
-    .no-tickets {
-      text-align: center;
-      padding: 80px 20px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 20px;
-      border: 2px dashed rgba(255, 255, 255, 0.1);
+    
+    .ticket-body {
+        flex-direction: column;
+        gap: 1rem;
     }
-
-    .btn-primary {
-      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-      border: none;
-      border-radius: 25px;
-      padding: 12px 30px;
-      font-weight: 600;
-      text-transform: uppercase;
-      transition: all 0.3s ease;
+    
+    .ticket-header {
+        flex-direction: column;
+        gap: 1rem;
     }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+    
+    .event-type-badge {
+        align-self: flex-start;
     }
-
+    
+    .cancelled-text {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+}
   </style>
-</head>
-
-<body>
-  <div class="container">
-    <h1 class="text-center mb-5 page-title">🎟️ My Tickets</h1>
-
-    <% if (tickets && tickets.length > 0) { %>
-      <div class="row g-4">
-        <% tickets.forEach(ticket => { %>
-          <div class="col-lg-4 col-md-6">
-            <div class="ticket-card">
-              <img src="<%= ticket.imageUrl || '/images/default-event.jpg' %>" alt="poster" class="ticket-poster">
-              
-              <div class="ticket-details">
-                <h4 class="ticket-title"><%= ticket.eventName %></h4>
-                <div class="ticket-info"><i class="bi bi-calendar-event"></i> 
-                  <span><%= new Date(ticket.date).toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'}) %></span>
-                </div>
-                <div class="ticket-info"><i class="bi bi-geo-alt"></i> <span><%= ticket.location %></span></div>
-                <div class="ticket-info"><i class="bi bi-person-badge"></i> <span><strong>Seat:</strong> <%= ticket.seatNumber || 'General' %></span></div>
-                <div class="ticket-info"><i class="bi bi-currency-dollar"></i> <span><strong>Price:</strong> $<%= ticket.price %></span></div>
-                <span class="status-badge <%= ticket.status === 'Active' ? 'status-active' : 'status-expired' %>">
-                  <%= ticket.status %>
-                </span>
-              </div>
-
-              <div class="qr-section">
-                <div class="qr-container" id="qrcode-<%= ticket._id %>"></div>
-                <div class="verification-text"><i class="bi bi-qr-code"></i> Verification Code</div>
-              </div>
-            </div>
-          </div>
-        <% }); %>
-      </div>
-    <% } else { %>
-      <div class="no-tickets">
-        <i class="bi bi-ticket-perforated" style="font-size:4rem;color:#4ecdc4;"></i>
-        <h3>No tickets found</h3>
-        <p>You haven't purchased any tickets yet.</p>
-        <a href="/events" class="btn btn-primary"><i class="bi bi-search me-2"></i>Browse Events</a>
-      </div>
-    <% } %>
-  </div>
-
-  <!-- ✅ Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-  <!-- ✅ QR Code Script -->
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      document.querySelectorAll('[id^="qrcode-"]').forEach(el => {
-        const id = el.id.replace('qrcode-', '');
-        const qrData = 'TICKET-' + id + '-' + Date.now();
-
-        // สร้าง QR Code
-        const qr = new QRCode(el, {
-          text: qrData,
-          width: 120,
-          height: 120,
-          colorDark: "#000000",
-          colorLight: "#ffffff",
-          correctLevel: QRCode.CorrectLevel.H
-        });
-
-        // ปรับตำแหน่งหลัง render
-        setTimeout(() => {
-          const canvas = el.querySelector("canvas");
-          if (canvas) {
-            canvas.style.position = "absolute";
-            canvas.style.top = "50%";
-            canvas.style.left = "50%";
-            canvas.style.transform = "translate(-50%, -50%) rotate(0deg)";
-            canvas.style.animation = "none";
-            canvas.style.transition = "none";
-            canvas.style.display = "block";
-            canvas.style.width = "120px";
-            canvas.style.height = "120px";
-          }
-        }, 300);
-      });
-    });
-  </script>
-</body>
-</html>

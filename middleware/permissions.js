@@ -1,138 +1,104 @@
-// Permission-based access control middleware
-// Implements the role-based permission matrix
+// Middleware for role-based access control
 
-const permissions = {
-  // Guest permissions (unauthenticated users)
-  guest: [
-    'view_homepage',
-    'view_event_list', 
-    'view_event_details',
-    'register',
-    'login'
-  ],
-  
-  // Attendee permissions
-  attendee: [
-    'view_homepage',
-    'view_event_list',
-    'view_event_details', 
-    'login',
-    'edit_profile',
-    'buy_tickets',
-    'view_ticket_history'
-  ],
-  
-  // Organizer permissions
-  organizer: [
-    'view_homepage',
-    'view_event_list',
-    'view_event_details',
-    'login', 
-    'edit_profile',
-    'create_event',
-    'view_own_events',
-    'edit_own_event',
-    'delete_own_event',
-    'view_dashboard'
-  ]
-};
-
-// Check if user has specific permission
-const hasPermission = (userRole, permission) => {
-  if (!userRole || !permissions[userRole]) {
-    return false;
-  }
-  return permissions[userRole].includes(permission);
-};
-
-// Middleware to check specific permission
-const requirePermission = (permission) => {
-  return (req, res, next) => {
-    const userRole = req.session.user ? req.session.user.role : 'guest';
-    
-    if (!hasPermission(userRole, permission)) {
-      req.flash('error', 'You do not have permission to access this feature');
-      
-      // Redirect based on user status
-      if (!req.session.user) {
-        return res.redirect('/auth/login');
-      } else {
-        return res.redirect('/');
-      }
-    }
-    
-    next();
-  };
-};
-
-// Middleware to check if user is guest (not logged in)
-const requireGuest = (req, res, next) => {
-  if (req.session.user) {
-    req.flash('info', 'You are already logged in');
-    return res.redirect('/');
+// Require user to be logged in
+const requireAuth = (req, res, next) => {
+  if (!req.session || !req.session.user) {
+    req.flash('error', 'Please log in to access this page');
+    return res.redirect('/auth/login');
   }
   next();
 };
 
-// Middleware to check if user is attendee
+// Require user to be an attendee
 const requireAttendee = (req, res, next) => {
-  if (!req.session.user) {
-    req.flash('error', 'Please log in to access this feature');
+  if (!req.session || !req.session.user) {
+    req.flash('error', 'Please log in to access this page');
     return res.redirect('/auth/login');
   }
   
   if (req.session.user.role !== 'attendee') {
-    req.flash('error', 'This feature is only available for attendees');
+    req.flash('error', 'Access denied. This page is for attendees only.');
     return res.redirect('/');
   }
   
   next();
 };
 
-// Middleware to check if user is organizer
+// Require user to be an organizer
 const requireOrganizer = (req, res, next) => {
-  if (!req.session.user) {
-    req.flash('error', 'Please log in to access this feature');
+  if (!req.session || !req.session.user) {
+    req.flash('error', 'Please log in to access this page');
     return res.redirect('/auth/login');
   }
   
   if (req.session.user.role !== 'organizer') {
-    req.flash('error', 'This feature is only available for organizers');
+    req.flash('error', 'Access denied. This page is for organizers only.');
     return res.redirect('/');
   }
   
   next();
 };
 
-// Middleware to check if user is logged in (attendee or organizer)
-const requireAuth = (req, res, next) => {
-  if (!req.session.user) {
-    req.flash('error', 'Please log in to access this feature');
+// Require user to be an admin (if you have admin role)
+const requireAdmin = (req, res, next) => {
+  if (!req.session || !req.session.user) {
+    req.flash('error', 'Please log in to access this page');
     return res.redirect('/auth/login');
+  }
+  
+  if (req.session.user.role !== 'admin') {
+    req.flash('error', 'Access denied. This page is for administrators only.');
+    return res.redirect('/');
+  }
+  
+  next();
+};
+
+// Allow both attendees and organizers
+const requireUser = (req, res, next) => {
+  if (!req.session || !req.session.user) {
+    req.flash('error', 'Please log in to access this page');
+    return res.redirect('/auth/login');
+  }
+  
+  if (!['attendee', 'organizer', 'admin'].includes(req.session.user.role)) {
+    req.flash('error', 'Access denied. Invalid user role.');
+    return res.redirect('/');
+  }
+  
+  next();
+};
+
+// Guest access (no authentication required)
+const allowGuest = (req, res, next) => {
+  // Always allow access, whether user is logged in or not
+  next();
+};
+
+// Redirect authenticated users away from guest pages
+const redirectIfAuthenticated = (req, res, next) => {
+  if (req.session && req.session.user) {
+    // Redirect based on user role
+    switch (req.session.user.role) {
+      case 'attendee':
+        return res.redirect('/attendee/dashboard');
+      case 'organizer':
+        return res.redirect('/organizer/dashboard');
+      case 'admin':
+        return res.redirect('/admin/dashboard');
+      default:
+        return res.redirect('/');
+    }
   }
   next();
 };
 
-// Helper function to check permissions in templates
-const checkPermission = (userRole, permission) => {
-  return hasPermission(userRole, permission);
-};
-
-// Helper function to get user role
-const getUserRole = (req) => {
-  return req.session.user ? req.session.user.role : 'guest';
-};
-
 module.exports = {
-  permissions,
-  hasPermission,
-  requirePermission,
-  requireGuest,
+  requireAuth,
   requireAttendee,
   requireOrganizer,
-  requireAuth,
-  checkPermission,
-  getUserRole
+  requireAdmin,
+  requireUser,
+  allowGuest,
+  redirectIfAuthenticated
 };
-
-

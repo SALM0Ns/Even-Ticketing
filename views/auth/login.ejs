@@ -70,7 +70,7 @@
                                            value="<%= (typeof formData !== 'undefined' && formData) ? formData.email : '' %>" 
                                            placeholder="Enter your email" required>
                                 </div>
-                                <% if (errors && errors.find(e => e.path === 'email')) { %>
+                                <% if (typeof errors !== 'undefined' && errors && errors.find(e => e.path === 'email')) { %>
                                     <div class="text-danger small mt-1">
                                         <%= errors.find(e => e.path === 'email').msg %>
                                     </div>
@@ -90,7 +90,7 @@
                                         <i class="fas fa-eye"></i>
                                     </button>
                                 </div>
-                                <% if (errors && errors.find(e => e.path === 'password')) { %>
+                                <% if (typeof errors !== 'undefined' && errors && errors.find(e => e.path === 'password')) { %>
                                     <div class="text-danger small mt-1">
                                         <%= errors.find(e => e.path === 'password').msg %>
                                     </div>
@@ -222,6 +222,31 @@
                     return;
                 }
             });
+
+            // Check for pending checkout after successful login
+            const pendingCheckout = sessionStorage.getItem('pendingCheckout');
+            if (pendingCheckout) {
+                try {
+                    const checkoutData = JSON.parse(pendingCheckout);
+                    console.log('🛒 Pending checkout found:', checkoutData);
+                    
+                    // Show notification about pending checkout
+                    const notification = document.createElement('div');
+                    notification.className = 'alert alert-info alert-dismissible fade show';
+                    notification.innerHTML = `
+                        <i class="fas fa-shopping-cart me-2"></i>
+                        <strong>Pending Purchase:</strong> You have ${checkoutData.selectedSeats.length} seat(s) selected for ${checkoutData.eventName}.
+                        <br><small>After login, you'll be redirected to complete your purchase.</small>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    
+                    const form = document.querySelector('form');
+                    form.parentNode.insertBefore(notification, form);
+                } catch (error) {
+                    console.error('Error parsing pending checkout:', error);
+                    sessionStorage.removeItem('pendingCheckout');
+                }
+            }
         });
     </script>
 </body>

@@ -1,0 +1,291 @@
+<%- include('../partials/header') %>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h2 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>Edit Event
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <form action="/organizer/events/<%= event._id %>/edit" method="POST" enctype="multipart/form-data">
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h4 class="text-primary mb-3">Basic Information</h4>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Event Name *</label>
+                                    <input type="text" class="form-control" id="name" name="name" value="<%= event.name %>" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="category" class="form-label">Category *</label>
+                                    <select class="form-select" id="category" name="category" required>
+                                        <option value="">Select Category</option>
+                                        <option value="movies" <%= event.category === 'movies' ? 'selected' : '' %>>Movies</option>
+                                        <option value="stage-plays" <%= event.category === 'stage-plays' ? 'selected' : '' %>>Stage Plays</option>
+                                        <option value="orchestra" <%= event.category === 'orchestra' ? 'selected' : '' %>>Live Orchestra</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Description *</label>
+                                    <textarea class="form-control" id="description" name="description" rows="4" required><%= event.description %></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="date" class="form-label">Event Date *</label>
+                                    <input type="datetime-local" class="form-control" id="date" name="date" value="<%= new Date(event.date).toISOString().slice(0, 16) %>" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="endDate" class="form-label">End Date *</label>
+                                    <input type="datetime-local" class="form-control" id="endDate" name="endDate" value="<%= event.endDate ? new Date(event.endDate).toISOString().slice(0, 16) : '' %>" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Location Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h4 class="text-primary mb-3">Location Information</h4>
+                            </div>
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="locationSelect" class="form-label">Select Venue *</label>
+                                    <select class="form-select" id="locationSelect" name="locationId" required>
+                                        <option value="">Choose a venue...</option>
+                                    </select>
+                                    <div class="form-text">Select from available venues</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Location Details (Auto-filled) -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="locationCapacity" class="form-label">Capacity</label>
+                                    <input type="number" class="form-control" id="locationCapacity" name="locationCapacity" min="1" step="1" value="<%= event.seating ? event.seating.totalSeats : event.location.capacity %>" required>
+                                    <div class="form-text">Defaults to the venue capacity. Adjust if you plan to release a different number of tickets.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pricing Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h4 class="text-primary mb-3">Pricing Information</h4>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="basePrice" class="form-label">Base Price *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="basePrice" name="pricing[basePrice]" step="0.01" min="0" value="<%= event.pricing.basePrice %>" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="vipPrice" class="form-label">VIP Price</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="vipPrice" name="pricing[vipPrice]" step="0.01" min="0" value="<%= event.pricing.vipPrice || '' %>">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="studentPrice" class="form-label">Student Price</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="studentPrice" name="pricing[studentPrice]" step="0.01" min="0" value="<%= event.pricing.studentPrice || '' %>">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="seniorPrice" class="form-label">Senior Price</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="seniorPrice" name="pricing[seniorPrice]" step="0.01" min="0" value="<%= event.pricing.seniorPrice || '' %>">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Event Image -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h4 class="text-primary mb-3">Event Image</h4>
+                                <% if (event.image) { %>
+                                <div class="mb-3">
+                                    <label class="form-label">Current Image</label>
+                                    <div class="current-image">
+                                        <img src="<%= event.image %>" alt="Current event image" class="img-fluid rounded" style="max-height: 200px;">
+                                        <div class="form-text">Current event image</div>
+                                    </div>
+                                </div>
+                                <% } %>
+                                <div class="mb-3">
+                                    <label for="image" class="form-label">Update Event Image</label>
+                                    <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                                    <div class="form-text">Upload a new image to replace the current one (max 20MB) - supports 4K, 8K, and professional photos</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex gap-3">
+                                    <button type="submit" class="btn btn-warning btn-lg">
+                                        <i class="fas fa-save me-2"></i>Update Event
+                                    </button>
+                                    <a href="/organizer/events" class="btn btn-outline-secondary btn-lg">
+                                        <i class="fas fa-times me-2"></i>Cancel
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Location Management Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const locationSelect = document.getElementById('locationSelect');
+        const locationCapacity = document.getElementById('locationCapacity');
+        
+        let locations = [];
+        const currentLocationId = '<%= event.location._id %>';
+        
+        // Load locations from API
+        async function loadLocations() {
+            try {
+                const category = document.getElementById('category').value;
+                console.log('Loading locations for category:', category);
+                const url = category ? `/api/locations?category=${category}` : '/api/locations';
+                console.log('Fetching URL:', url);
+                
+                // Show loading state
+                locationSelect.innerHTML = '<option value="">Loading venues...</option>';
+                locationSelect.disabled = true;
+                
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log('Locations data:', data);
+                locations = data.locations || [];
+                
+                // Populate dropdown
+                locationSelect.innerHTML = '<option value="">Choose a venue...</option>';
+                if (locations.length === 0) {
+                    locationSelect.innerHTML = '<option value="">No venues available</option>';
+                } else {
+                    locations.forEach(location => {
+                        const option = document.createElement('option');
+                        option.value = location._id;
+                        option.textContent = `${location.name} - ${location.city}, ${location.country} (Capacity: ${location.capacity})`;
+                        
+                        // Select current location
+                        if (location._id === currentLocationId) {
+                            option.selected = true;
+                        }
+                        
+                        locationSelect.appendChild(option);
+                    });
+                }
+                locationSelect.disabled = false;
+                console.log('Dropdown populated with', locations.length, 'locations');
+            } catch (error) {
+                console.error('Error loading locations:', error);
+                locationSelect.innerHTML = '<option value="">Error loading venues. Please refresh the page.</option>';
+                locationSelect.disabled = false;
+            }
+        }
+        
+        // Handle location selection
+        locationSelect.addEventListener('change', function() {
+            const selectedLocationId = this.value;
+            const selectedLocation = locations.find(loc => loc._id === selectedLocationId);
+            
+            if (selectedLocation) {
+                locationCapacity.value = selectedLocation.capacity;
+            } else {
+                // Clear fields if no location selected
+                locationCapacity.value = '';
+            }
+        });
+        
+        // Handle category change
+        document.getElementById('category').addEventListener('change', function() {
+            // Clear location fields
+            locationSelect.value = '';
+            locationCapacity.value = '';
+            
+            // Reload locations for new category
+            loadLocations();
+        });
+        
+        // File size validation
+        function validateFileSize(file, maxSizeMB = 20) {
+            const maxSizeBytes = maxSizeMB * 1024 * 1024;
+            if (file.size > maxSizeBytes) {
+                alert(`File "${file.name}" is too large. Maximum size is ${maxSizeMB}MB.`);
+                return false;
+            }
+            return true;
+        }
+        
+        // Add file validation to image input
+        const imageInput = document.getElementById('image');
+        if (imageInput) {
+            imageInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    if (!validateFileSize(this.files[0])) {
+                        this.value = ''; // Clear the input
+                    }
+                }
+            });
+        }
+        
+        // Form validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const selectedLocationId = locationSelect.value;
+            if (!selectedLocationId) {
+                e.preventDefault();
+                alert('Please select a venue before updating the event.');
+                locationSelect.focus();
+                return false;
+            }
+            
+            // Validate image file size if provided
+            const imageInput = document.getElementById('image');
+            if (imageInput && imageInput.files && imageInput.files[0]) {
+                if (!validateFileSize(imageInput.files[0])) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+        });
+        
+        // Initialize
+        loadLocations();
+    });
+</script>
+
+<%- include('../partials/footer') %>

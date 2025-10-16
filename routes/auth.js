@@ -118,8 +118,8 @@ router.post('/register', [
       return true;
     }),
   body('role')
-    .isIn(['attendee', 'organizer'])
-    .withMessage('Please select a valid role'),
+    .equals('attendee')
+    .withMessage('Only attendee registration is allowed'),
   body('companyName')
     .if(body('role').equals('organizer'))
     .notEmpty()
@@ -147,7 +147,8 @@ router.post('/register', [
       });
     }
 
-    const { name, email, password, role, companyName, phone, dateOfBirth } = req.body;
+    const { name, email, password, phone, dateOfBirth } = req.body;
+    const role = 'attendee'; // Force role to be attendee only
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -174,12 +175,7 @@ router.post('/register', [
       }
     };
 
-    // Add organizer-specific data
-    if (role === 'organizer') {
-      userData.organizerProfile = {
-        companyName
-      };
-    }
+    // No organizer-specific data needed since only attendees can register
 
     // Create new user
     const user = new User(userData);
@@ -216,8 +212,8 @@ router.get('/login', redirectIfLoggedIn, (req, res) => {
     success: req.flash('success'),
     error: req.flash('error'),
     info: req.flash('info'),
-    formData: null,
     errors: [],
+    formData: null,
     redirectTo
   });
 });
@@ -254,6 +250,7 @@ router.post('/login', [
       return res.render('auth/login', {
         title: 'Login - CursedTicket',
         user: null,
+        errors: [],
         formData: req.body,
         redirectTo: req.body.redirect || ''
       });
@@ -265,6 +262,7 @@ router.post('/login', [
       return res.render('auth/login', {
         title: 'Login - CursedTicket',
         user: null,
+        errors: [],
         formData: req.body,
         redirectTo: req.body.redirect || ''
       });
@@ -277,6 +275,7 @@ router.post('/login', [
       return res.render('auth/login', {
         title: 'Login - CursedTicket',
         user: null,
+        errors: [],
         formData: req.body,
         redirectTo: req.body.redirect || ''
       });
@@ -307,6 +306,10 @@ router.post('/login', [
       return res.redirect('/organizer/dashboard');
     }
 
+    if (user.role === 'admin') {
+      return res.redirect('/admin/dashboard');
+    }
+
     return res.redirect('/');
   } catch (error) {
     console.error('Login error:', error);
@@ -314,6 +317,7 @@ router.post('/login', [
     res.render('auth/login', {
       title: 'Login - CursedTicket',
       user: null,
+      errors: [],
       formData: req.body,
       redirectTo: req.body.redirect || ''
     });

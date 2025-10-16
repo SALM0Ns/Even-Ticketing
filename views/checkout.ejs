@@ -1,0 +1,225 @@
+<%- include('partials/header') %>
+
+<div class="checkout-page">
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-credit-card me-2"></i>Payment Information
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="checkout-form">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="fullName" class="form-label">Full Name *</label>
+                                    <input type="text" class="form-control" id="fullName" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="email" class="form-label">Email Address *</label>
+                                    <input type="email" class="form-control" id="email" required>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="phone" class="form-label">Phone Number *</label>
+                                    <input type="tel" class="form-control" id="phone" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="paymentMethod" class="form-label">Payment Method *</label>
+                                    <select class="form-select" id="paymentMethod" required>
+                                        <option value="">Choose...</option>
+                                        <option value="Credit Card">Credit Card</option>
+                                        <option value="Debit Card">Debit Card</option>
+                                        <option value="PayPal">PayPal</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="streetAddress" class="form-label">Street Address *</label>
+                                    <input type="text" class="form-control" id="streetAddress" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="city" class="form-label">City *</label>
+                                    <input type="text" class="form-control" id="city" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="terms" required>
+                                    <label class="form-check-label" for="terms">
+                                        I agree to the Terms and Conditions and Privacy Policy
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <button type="button" class="btn btn-success btn-lg" id="complete-payment-btn">
+                                    <span id="button-text">
+                                        <i class="fas fa-lock me-2"></i>Complete Payment
+                                    </span>
+                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="fas fa-shield-alt me-2"></i>Security Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">
+                            Your payment information is encrypted and secure. We use industry-standard SSL encryption to protect your data.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Processing Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-5">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5>Please wait while we process your payment.</h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const checkoutOrder = JSON.parse(sessionStorage.getItem('checkoutOrder'));
+    if (!checkoutOrder) {
+        alert('No order found. Please select seats first.');
+        window.location.href = '/';
+        return;
+    }
+
+    // Payment method toggle
+    const paymentMethodSelect = document.getElementById('paymentMethod');
+    const cardDetailsSection = document.getElementById('card-details-section');
+
+    paymentMethodSelect.addEventListener('change', () => {
+        if (paymentMethodSelect.value === 'Credit Card' || paymentMethodSelect.value === 'Debit Card') {
+            if (cardDetailsSection) cardDetailsSection.style.display = 'block';
+        } else {
+            if (cardDetailsSection) cardDetailsSection.style.display = 'none';
+        }
+    });
+
+    // Handle payment submission
+    document.getElementById('complete-payment-btn').addEventListener('click', async () => {
+        const fullName = document.getElementById('fullName').value;
+        const email = document.getElementById('email').value;
+        const phone = document.getElementById('phone').value;
+        const paymentMethod = paymentMethodSelect.value;
+        const streetAddress = document.getElementById('streetAddress').value;
+        const city = document.getElementById('city').value;
+        const terms = document.getElementById('terms').checked;
+
+        // Basic validation
+        if (!fullName || !email || !phone || !paymentMethod || !streetAddress || !city || !terms) {
+            alert('Please fill in all required fields and accept the terms.');
+            return;
+        }
+
+        // Show loading modal
+        const paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
+        paymentModal.show();
+
+        // Show loading spinner
+        const buttonText = document.getElementById('button-text');
+        const spinner = document.querySelector('.spinner-border');
+        buttonText.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+        spinner.classList.remove('d-none');
+        document.getElementById('complete-payment-btn').disabled = true;
+
+        try {
+            // Debug: Log the data being sent
+            const orderData = {
+                eventId: checkoutOrder.eventId,
+                eventType: checkoutOrder.eventType,
+                showDate: checkoutOrder.showDate,
+                selectedSeats: checkoutOrder.selectedSeats,
+                customerInfo: { 
+                    name: fullName, 
+                    email: email, 
+                    phone: phone,
+                    address: streetAddress,
+                    city: city
+                }
+            };
+            
+            console.log('🛒 Sending order data:', orderData);
+            console.log('🛒 Checkout order from sessionStorage:', checkoutOrder);
+            
+            // 1. Create Order
+            const orderResponse = await fetch('/api/payments/create-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderData)
+            });
+            const orderResult = await orderResponse.json();
+
+            if (!orderResponse.ok) {
+                console.error('❌ Order creation failed:', orderResult);
+                throw new Error(orderResult.message || 'Failed to create order');
+            }
+
+            const orderId = orderResult.order.id;
+
+            // 2. Process Payment
+            const paymentResponse = await fetch('/api/payments/process-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderId: orderId,
+                    paymentMethod: paymentMethod,
+                    cardDetails: null
+                })
+            });
+            const paymentResult = await paymentResponse.json();
+
+            if (!paymentResponse.ok) {
+                throw new Error(paymentResult.message || 'Payment failed');
+            }
+
+            paymentModal.hide();
+            alert('Payment successful! Redirecting to your tickets.');
+            sessionStorage.removeItem('checkoutOrder'); // Clear order from session
+            window.location.href = `/tickets/${orderId}`; // Redirect to tickets page
+        } catch (error) {
+            paymentModal.hide();
+            console.error('Payment processing error:', error);
+            
+            // Show detailed error message
+            const errorMessage = error.message || 'Unknown error occurred';
+            alert(`Payment failed: ${errorMessage}\n\nPlease check the console for more details.`);
+            
+            // Optionally, redirect to a failed payment page or show error on current page
+            // For now, just reload to allow re-attempt
+            location.reload();
+        } finally {
+            // Reset button state
+            buttonText.innerHTML = '<i class="fas fa-lock me-2"></i>Complete Payment';
+            spinner.classList.add('d-none');
+            document.getElementById('complete-payment-btn').disabled = false;
+        }
+    });
+});
+</script>
+
+<%- include('partials/footer') %>
