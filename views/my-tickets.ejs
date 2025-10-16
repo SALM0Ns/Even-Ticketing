@@ -112,10 +112,72 @@ function downloadTicket(ticketId) {
     alert('Download functionality coming soon!');
 }
 
-function cancelTicket(ticketId) {
-    if (confirm('Are you sure you want to cancel this ticket?')) {
-        // TODO: Implement cancel functionality
-        alert('Cancel functionality coming soon!');
+async function cancelTicket(userTicketId) {
+    // Find the ticket container to get the full ticket data
+    const ticketElement = document.querySelector(`[data-ticket-id]`);
+    if (!ticketElement) {
+        alert('Ticket not found!');
+        return;
+    }
+
+    // Get cancellation reason
+    const reason = prompt('Please provide a reason for cancellation (optional):');
+    if (reason === null) {
+        return; // User cancelled the prompt
+    }
+
+    if (!confirm('Are you sure you want to cancel this ticket? This action cannot be undone.')) {
+        return;
+    }
+
+    try {
+        // Show loading state
+        const cancelButton = ticketElement.querySelector(`button[onclick*="${userTicketId}"]`);
+        if (cancelButton) {
+            cancelButton.disabled = true;
+            cancelButton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Cancelling...';
+        }
+
+        // Call the cancellation API
+        const response = await fetch('/api/payments/cancel-ticket', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                ticketId: userTicketId,
+                reason: reason || 'Cancelled by user'
+            })
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            // Show success message
+            alert('Ticket cancelled successfully!');
+            
+            // Reload the page to show updated ticket status
+            location.reload();
+        } else {
+            // Show error message
+            alert(result.message || 'Failed to cancel ticket. Please try again.');
+            
+            // Reset button state
+            if (cancelButton) {
+                cancelButton.disabled = false;
+                cancelButton.innerHTML = '<i class="fas fa-times me-1"></i>Cancel';
+            }
+        }
+    } catch (error) {
+        console.error('Error cancelling ticket:', error);
+        alert('An error occurred while cancelling the ticket. Please try again.');
+        
+        // Reset button state
+        const cancelButton = ticketElement.querySelector(`button[onclick*="${userTicketId}"]`);
+        if (cancelButton) {
+            cancelButton.disabled = false;
+            cancelButton.innerHTML = '<i class="fas fa-times me-1"></i>Cancel';
+        }
     }
 }
 
@@ -264,7 +326,7 @@ function createETicketForMyTickets(ticket, individualTicket, index) {
                                     <i class="fas fa-download me-1"></i>Download
                                 </button>
                                 ${ticket.status === 'active' ? `
-                                    <button class="btn btn-outline-warning btn-sm" onclick="cancelTicket('${individualTicket.ticketId}')">
+                                    <button class="btn btn-outline-warning btn-sm" onclick="cancelTicket('${ticket._id}')">
                                         <i class="fas fa-times me-1"></i>Cancel
                                     </button>
                                 ` : ''}

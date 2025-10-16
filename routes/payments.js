@@ -314,4 +314,99 @@ router.get('/user-tickets', async (req, res) => {
   }
 });
 
+// Cancel ticket
+router.post('/cancel-ticket', async (req, res) => {
+  try {
+    const { ticketId, reason } = req.body;
+    const userId = req.session && req.session.user ? req.session.user.id : null;
+    const email = req.session && req.session.user ? req.session.user.email : null;
+
+    if (!ticketId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Ticket ID is required'
+      });
+    }
+
+    // Find the ticket
+    const ticket = await UserTicket.findById(ticketId);
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found'
+      });
+    }
+
+    // Check if user owns this ticket
+    const isOwner = (userId && ticket.user && ticket.user.toString() === userId) ||
+                   (email && ticket.customer.email === email);
+    
+    if (!isOwner) {
+      return res.status(403).json({
+        success: false,
+        message: 'You are not authorized to cancel this ticket'
+      });
+    }
+
+    // Check if ticket can be cancelled
+    if (ticket.status === 'cancelled') {
+      return res.status(400).json({
+        success: false,
+        message: 'Ticket is already cancelled'
+      });
+    }
+
+    if (ticket.status === 'used') {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot cancel a ticket that has already been used'
+      });
+    }
+
+    // Check if event date has passed
+    const eventDate = new Date(ticket.event.showDate);
+    const now = new Date();
+    if (eventDate < now) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot cancel ticket for an event that has already occurred'
+      });
+    }
+
+    // Cancel the ticket
+    ticket.status = 'cancelled';
+    ticket.cancelledAt = new Date();
+    ticket.cancellationReason = reason || 'Cancelled by user';
+    await ticket.save();
+
+    // Also cancel the associated order if it exists
+    if (ticket.order) {
+      const order = await Order.findById(ticket.order);
+      if (order && order.orderStatus !== 'cancelled') {
+        order.orderStatus = 'cancelled';
+        order.notes = `Ticket cancelled: ${reason || 'Cancelled by user'}`;
+        await order.save();
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Ticket cancelled successfully',
+      ticket: {
+        id: ticket._id,
+        status: ticket.status,
+        cancelledAt: ticket.cancelledAt,
+        cancellationReason: ticket.cancellationReason
+      }
+    });
+
+  } catch (error) {
+    console.error('Error cancelling ticket:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to cancel ticket'
+    });
+  }
+});
+
 module.exports = router;

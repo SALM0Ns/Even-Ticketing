@@ -80,6 +80,14 @@ const userTicketSchema = new mongoose.Schema({
   qrCode: {
     type: String, // Store QR code data
     required: false
+  },
+  cancelledAt: {
+    type: Date,
+    default: null
+  },
+  cancellationReason: {
+    type: String,
+    default: null
   }
 }, {
   timestamps: true
@@ -111,8 +119,10 @@ userTicketSchema.methods.markAsUsed = function() {
 };
 
 // Method to cancel ticket
-userTicketSchema.methods.cancel = function() {
+userTicketSchema.methods.cancel = function(reason) {
   this.status = 'cancelled';
+  this.cancelledAt = new Date();
+  this.cancellationReason = reason || 'Cancelled by user';
   return this.save();
 };
 

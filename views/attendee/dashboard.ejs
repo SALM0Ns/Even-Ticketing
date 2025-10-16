@@ -210,12 +210,17 @@ async function loadRecentTickets() {
                         <p class="text-muted mb-0">
                             <i class="fas fa-calendar-alt me-1"></i>${new Date(ticket.event.showDate).toLocaleDateString()}
                             <i class="fas fa-map-marker-alt ms-3 me-1"></i>${ticket.event.venue.name}
-                            <span class="badge bg-success ms-3">${ticket.status.toUpperCase()}</span>
+                            <span class="badge bg-${ticket.status === 'active' ? 'success' : ticket.status === 'cancelled' ? 'danger' : 'secondary'} ms-3">${ticket.status.toUpperCase()}</span>
                         </p>
                     </div>
                     <div class="flex-shrink-0 text-end">
                         <span class="fw-bold text-success">$${ticket.totalAmount.toFixed(2)}</span>
                         <p class="text-muted mb-0" style="font-size: 0.8em;">${new Date(ticket.createdAt).toLocaleDateString()}</p>
+                        ${ticket.status === 'active' ? `
+                            <button class="btn btn-outline-warning btn-sm mt-1" onclick="cancelTicketFromDashboard('${ticket._id}')">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </button>
+                        ` : ''}
                     </div>
                 </div>
             `).join('');
@@ -328,6 +333,49 @@ function shareReferral() {
         navigator.clipboard.writeText(referralLink).then(() => {
             alert('Referral link copied to clipboard!');
         });
+    }
+}
+
+// Cancel ticket from dashboard
+async function cancelTicketFromDashboard(userTicketId) {
+    // Get cancellation reason
+    const reason = prompt('Please provide a reason for cancellation (optional):');
+    if (reason === null) {
+        return; // User cancelled the prompt
+    }
+
+    if (!confirm('Are you sure you want to cancel this ticket? This action cannot be undone.')) {
+        return;
+    }
+
+    try {
+        // Call the cancellation API
+        const response = await fetch('/api/payments/cancel-ticket', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                ticketId: userTicketId,
+                reason: reason || 'Cancelled by user'
+            })
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            // Show success message
+            alert('Ticket cancelled successfully!');
+            
+            // Reload the dashboard to show updated ticket status
+            location.reload();
+        } else {
+            // Show error message
+            alert(result.message || 'Failed to cancel ticket. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error cancelling ticket:', error);
+        alert('An error occurred while cancelling the ticket. Please try again.');
     }
 }
 </script>
