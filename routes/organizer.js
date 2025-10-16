@@ -27,15 +27,37 @@ const upload = multer({
   }
 });
 
-// Generate show dates for events
-function generateShowDates(baseDate, hour = 19, minute = 0) {
+// Generate show dates for events with random times
+function generateShowDates(baseDate, startHour = 18, endHour = 22) {
   const showDates = [];
+  
+  // Validate input parameters
+  if (!baseDate || isNaN(new Date(baseDate).getTime())) {
+    console.error('Invalid base date provided to generateShowDates');
+    return [];
+  }
+  
+  if (startHour < 0 || startHour > 23 || endHour < 0 || endHour > 23 || startHour > endHour) {
+    console.error('Invalid hour range provided to generateShowDates');
+    return [];
+  }
   
   // Generate 7 show dates starting from base date
   for (let i = 0; i < 7; i++) {
     const showDate = new Date(baseDate);
     showDate.setDate(baseDate.getDate() + i);
-    showDate.setHours(hour, minute, 0, 0);
+    
+    // Random time between startHour and endHour
+    const randomHour = Math.floor(Math.random() * (endHour - startHour + 1)) + startHour;
+    const randomMinute = Math.random() < 0.5 ? 0 : 30; // Either :00 or :30
+    
+    showDate.setHours(randomHour, randomMinute, 0, 0);
+    
+    // Validate the generated date
+    if (isNaN(showDate.getTime())) {
+      console.error('Generated invalid show date, skipping');
+      continue;
+    }
     
     showDates.push({
       date: showDate,
@@ -47,6 +69,7 @@ function generateShowDates(baseDate, hour = 19, minute = 0) {
     });
   }
   
+  console.log(`Generated ${showDates.length} show dates for event`);
   return showDates;
 }
 
@@ -436,9 +459,37 @@ router.post('/events/create', requireOrganizer, upload.single('image'), async (r
       return res.redirect('/organizer/events/create');
     }
     
-    // Generate show dates automatically
-    const showDates = generateShowDates(new Date(date), 19, 0); // 7:00 PM default
-    event.showDates = showDates;
+    // Generate show dates automatically with appropriate time ranges
+    let showDates;
+    try {
+      if (category === 'movies') {
+        // Movies: 6:00 PM - 10:00 PM
+        showDates = generateShowDates(new Date(date), 18, 22);
+      } else if (category === 'stage-plays') {
+        // Stage Plays: 7:00 PM - 9:30 PM
+        showDates = generateShowDates(new Date(date), 19, 21);
+      } else if (category === 'orchestra') {
+        // Orchestra: 7:30 PM - 10:00 PM
+        showDates = generateShowDates(new Date(date), 19, 22);
+      } else {
+        // Default: 7:00 PM - 10:00 PM
+        showDates = generateShowDates(new Date(date), 19, 22);
+      }
+      
+      // Validate show dates were generated
+      if (!showDates || showDates.length === 0) {
+        console.error('Failed to generate show dates, using fallback');
+        showDates = generateShowDates(new Date(date), 19, 22); // Fallback
+      }
+      
+      event.showDates = showDates;
+      console.log(`✅ Generated ${showDates.length} show dates for ${category} event`);
+    } catch (showDateError) {
+      console.error('Error generating show dates:', showDateError);
+      // Fallback to default show dates
+      showDates = generateShowDates(new Date(date), 19, 22);
+      event.showDates = showDates;
+    }
     
     await event.save();
     
