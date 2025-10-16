@@ -649,52 +649,81 @@ function selectShowDate(date, index) {
     loadSeatingChart();
 }
 
-function loadSeatingChart() {
+async function loadSeatingChart() {
     const container = document.getElementById('seating-container');
-    container.innerHTML = '';
+    container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading seats...</span></div><p class="mt-2">Loading seat availability...</p></div>';
     
-    // Get seating data for the selected show date
-    const selectedShowDate = document.querySelector('.show-date-card.selected');
-    let totalSeats, takenSeats;
-    
-    if (selectedShowDate && eventData.showDates && eventData.showDates.length > 0) {
-        // Use individual show seating data
-        const showDateValue = selectedShowDate.dataset.date;
-        const selectedShow = eventData.showDates.find(show => 
-            new Date(show.date).toISOString() === new Date(showDateValue).toISOString()
-        );
+    try {
+        // Get seating data for the selected show date
+        const selectedShowDate = document.querySelector('.show-date-card.selected');
+        let totalSeats, takenSeats;
         
-        if (selectedShow && selectedShow.seating) {
-            totalSeats = selectedShow.seating.totalSeats;
-            takenSeats = selectedShow.seating.takenSeats || [];
+        if (selectedShowDate && eventData.showDates && eventData.showDates.length > 0) {
+            // Use individual show seating data
+            const showDateValue = selectedShowDate.dataset.date;
+            const selectedShow = eventData.showDates.find(show => 
+                new Date(show.date).toISOString() === new Date(showDateValue).toISOString()
+            );
+            
+            if (selectedShow && selectedShow.seating) {
+                totalSeats = selectedShow.seating.totalSeats;
+                takenSeats = selectedShow.seating.takenSeats || [];
+            } else {
+                // Fallback to legacy seating data
+                totalSeats = eventData.seating.totalSeats;
+                takenSeats = eventData.seating.takenSeats || [];
+            }
         } else {
             // Fallback to legacy seating data
             totalSeats = eventData.seating.totalSeats;
             takenSeats = eventData.seating.takenSeats || [];
         }
-    } else {
-        // Fallback to legacy seating data
-        totalSeats = eventData.seating.totalSeats;
-        takenSeats = eventData.seating.takenSeats || [];
-    }
+
+        // Fetch real-time seat availability from API
+        if (selectedShowDate) {
+            const showDateValue = selectedShowDate.dataset.date;
+            const response = await fetch(`/api/payments/seat-availability/${eventData._id}/${showDateValue}`);
+            
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success) {
+                    totalSeats = result.data.totalSeats;
+                    takenSeats = result.data.takenSeats;
+                    console.log(`✅ Loaded real-time seat data: ${takenSeats.length}/${totalSeats} taken`);
+                }
+            } else {
+                console.warn('Failed to fetch real-time seat data, using cached data');
+            }
+        }
     
-    // Add stage indicator inside the seating container
-    const stageIndicator = document.createElement('div');
-    stageIndicator.className = 'screen-stage';
-    stageIndicator.innerHTML = '<i class="fas fa-tv me-2"></i>Screen / Stage';
-    container.appendChild(stageIndicator);
-    
-    // Check event type to determine layout
-    const isTheaterEvent = eventData.category === 'StagePlays' || 
-                          eventData.category === 'stage-plays' ||
-                          eventData.category === 'LiveOrchestra' || 
-                          eventData.category === 'live-orchestra' ||
-                          eventData.category === 'orchestra';
-    
-    if (isTheaterEvent) {
-        createTheaterLayout(container, totalSeats, takenSeats);
-    } else {
-        createCinemaLayout(container, totalSeats, takenSeats);
+        // Add stage indicator inside the seating container
+        const stageIndicator = document.createElement('div');
+        stageIndicator.className = 'screen-stage';
+        stageIndicator.innerHTML = '<i class="fas fa-tv me-2"></i>Screen / Stage';
+        container.appendChild(stageIndicator);
+        
+        // Check event type to determine layout
+        const isTheaterEvent = eventData.category === 'StagePlays' || 
+                              eventData.category === 'stage-plays' ||
+                              eventData.category === 'LiveOrchestra' || 
+                              eventData.category === 'live-orchestra' ||
+                              eventData.category === 'orchestra';
+        
+        if (isTheaterEvent) {
+            createTheaterLayout(container, totalSeats, takenSeats);
+        } else {
+            createCinemaLayout(container, totalSeats, takenSeats);
+        }
+        
+    } catch (error) {
+        console.error('Error loading seating chart:', error);
+        container.innerHTML = `
+            <div class="alert alert-danger text-center">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Error loading seat availability</strong><br>
+                <small>Please refresh the page and try again.</small>
+            </div>
+        `;
     }
 }
 
@@ -1154,7 +1183,7 @@ function createSeatElement(seatNumber, takenSeats, isVip = false) {
     return seatElement;
 }
 
-function toggleSeat(seatNumber) {
+async function toggleSeat(seatNumber) {
     const seatElement = document.querySelector(`[data-seat-number="${seatNumber}"]`);
     
     if (selectedSeats.includes(seatNumber)) {
@@ -1163,10 +1192,52 @@ function toggleSeat(seatNumber) {
         seatElement.classList.remove('selected');
         seatElement.classList.add('available');
     } else {
-        // Select seat
-        selectedSeats.push(seatNumber);
-        seatElement.classList.remove('available');
-        seatElement.classList.add('selected');
+        // Check if seat is still available before selecting
+        const selectedShowDate = document.querySelector('.show-date-card.selected');
+        if (selectedShowDate) {
+            const showDateValue = selectedShowDate.dataset.date;
+            
+            try {
+                // Check seat availability in real-time
+                const response = await fetch(`/api/payments/lock-seats`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        eventId: eventData._id,
+                        showDate: showDateValue,
+                        seatNumbers: [seatNumber]
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Seat is available - select it
+                    selectedSeats.push(seatNumber);
+                    seatElement.classList.remove('available');
+                    seatElement.classList.add('selected');
+                } else {
+                    // Seat is no longer available
+                    alert(`Seat ${seatNumber} is no longer available. Please select another seat.`);
+                    // Refresh the seating chart to show updated availability
+                    loadSeatingChart();
+                    return;
+                }
+            } catch (error) {
+                console.error('Error checking seat availability:', error);
+                // Fallback to selecting the seat if API fails
+                selectedSeats.push(seatNumber);
+                seatElement.classList.remove('available');
+                seatElement.classList.add('selected');
+            }
+        } else {
+            // No show date selected - fallback to normal selection
+            selectedSeats.push(seatNumber);
+            seatElement.classList.remove('available');
+            seatElement.classList.add('selected');
+        }
     }
     
     updateSelectedSeatsSummary();
@@ -1195,7 +1266,7 @@ function updateSelectedSeatsSummary() {
     totalPrice.textContent = total.toFixed(2);
 }
 
-function proceedToCheckout() {
+async function proceedToCheckout() {
   if (selectedSeats.length === 0) {
     alert('Please select at least one seat.');
     return;
@@ -1204,6 +1275,33 @@ function proceedToCheckout() {
   if (!selectedShowDate) {
     alert('Please select a show date.');
     return;
+  }
+
+  // Check seat availability one final time before proceeding
+  try {
+    const response = await fetch(`/api/payments/lock-seats`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        eventId: '<%= event._id %>',
+        showDate: selectedShowDate,
+        seatNumbers: selectedSeats
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (!result.success) {
+      alert(`Some seats are no longer available: ${result.unavailableSeats.join(', ')}. Please select different seats.`);
+      // Refresh the seating chart
+      loadSeatingChart();
+      return;
+    }
+  } catch (error) {
+    console.error('Error checking seat availability:', error);
+    // Continue with checkout if API fails
   }
 
   // Check if user is logged in

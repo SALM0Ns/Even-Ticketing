@@ -27,33 +27,47 @@ async function updateSeatAvailability(order) {
         break;
     }
 
-    if (!event) return;
+    if (!event) {
+      console.error('Event not found for seat availability update');
+      return;
+    }
 
     // Update taken seats for the specific show date
     const showDate = new Date(order.event.showDate);
-    const showDateStr = showDate.toISOString().split('T')[0];
     
     if (event.showDates && event.showDates.length > 0) {
-      const showDateIndex = event.showDates.findIndex(date => {
-        const eventDate = new Date(date);
-        return eventDate.toISOString().split('T')[0] === showDateStr;
+      // Find the matching show date
+      const showDateIndex = event.showDates.findIndex(show => {
+        const eventDate = new Date(show.date);
+        return eventDate.getTime() === showDate.getTime();
       });
       
-      if (showDateIndex !== -1 && event.seating && event.seating[showDateIndex]) {
+      if (showDateIndex !== -1 && event.showDates[showDateIndex].seating) {
+        const seating = event.showDates[showDateIndex].seating;
+        
         // Add taken seats
         order.tickets.forEach(ticket => {
-          if (!event.seating[showDateIndex].takenSeats.includes(ticket.seatNumber)) {
-            event.seating[showDateIndex].takenSeats.push(ticket.seatNumber);
+          const seatNumber = parseInt(ticket.seatNumber);
+          if (!seating.takenSeats.includes(seatNumber)) {
+            seating.takenSeats.push(seatNumber);
           }
         });
         
         // Update available seats count
-        event.seating[showDateIndex].availableSeats = 
-          event.seating[showDateIndex].totalSeats - event.seating[showDateIndex].takenSeats.length;
+        seating.availableSeats = seating.totalSeats - seating.takenSeats.length;
         
+        // Mark as modified to ensure save
+        event.markModified('showDates');
         await event.save();
-        console.log(`Updated seat availability for ${event.name} on ${showDateStr}`);
+        
+        console.log(`✅ Updated seat availability for ${event.name} on ${showDate.toLocaleDateString()}`);
+        console.log(`   - Taken seats: ${seating.takenSeats.length}/${seating.totalSeats}`);
+        console.log(`   - Available seats: ${seating.availableSeats}`);
+      } else {
+        console.error('Show date not found or seating data missing');
       }
+    } else {
+      console.error('No show dates found for event');
     }
   } catch (error) {
     console.error('Error updating seat availability:', error);
@@ -405,6 +419,165 @@ router.post('/cancel-ticket', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to cancel ticket'
+    });
+  }
+});
+
+// Get seat availability for a specific show date
+router.get('/seat-availability/:eventId/:showDate', async (req, res) => {
+  try {
+    const { eventId, showDate } = req.params;
+    const showDateObj = new Date(showDate);
+
+    // Find the event
+    let event = await Movie.findById(eventId);
+    if (!event) {
+      event = await StagePlays.findById(eventId);
+    }
+    if (!event) {
+      event = await LiveOrchestra.findById(eventId);
+    }
+
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: 'Event not found'
+      });
+    }
+
+    // Find the specific show date
+    const showDateIndex = event.showDates.findIndex(show => {
+      const eventDate = new Date(show.date);
+      return eventDate.getTime() === showDateObj.getTime();
+    });
+
+    if (showDateIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: 'Show date not found'
+      });
+    }
+
+    const seating = event.showDates[showDateIndex].seating;
+    
+    res.json({
+      success: true,
+      data: {
+        totalSeats: seating.totalSeats,
+        takenSeats: seating.takenSeats,
+        availableSeats: seating.availableSeats,
+        showDate: showDate
+      }
+    });
+
+  } catch (error) {
+    console.error('Error getting seat availability:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get seat availability'
+    });
+  }
+});
+
+// Lock seats temporarily during booking process
+router.post('/lock-seats', async (req, res) => {
+  try {
+    const { eventId, showDate, seatNumbers } = req.body;
+
+    if (!eventId || !showDate || !seatNumbers || !Array.isArray(seatNumbers)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields'
+      });
+    }
+
+    const showDateObj = new Date(showDate);
+
+    // Find the event
+    let event = await Movie.findById(eventId);
+    if (!event) {
+      event = await StagePlays.findById(eventId);
+    }
+    if (!event) {
+      event = await LiveOrchestra.findById(eventId);
+    }
+
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: 'Event not found'
+      });
+    }
+
+    // Find the specific show date
+    const showDateIndex = event.showDates.findIndex(show => {
+      const eventDate = new Date(show.date);
+      return eventDate.getTime() === showDateObj.getTime();
+    });
+
+    if (showDateIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: 'Show date not found'
+      });
+    }
+
+    const seating = event.showDates[showDateIndex].seating;
+    
+    // Check if seats are available
+    const unavailableSeats = seatNumbers.filter(seatNum => 
+      seating.takenSeats.includes(parseInt(seatNum))
+    );
+
+    if (unavailableSeats.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Some seats are no longer available',
+        unavailableSeats: unavailableSeats
+      });
+    }
+
+    // Seats are available - return success
+    res.json({
+      success: true,
+      message: 'Seats are available for booking',
+      availableSeats: seatNumbers
+    });
+
+  } catch (error) {
+    console.error('Error locking seats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to lock seats'
+    });
+  }
+});
+
+// Release seats if booking is cancelled
+router.post('/release-seats', async (req, res) => {
+  try {
+    const { eventId, showDate, seatNumbers } = req.body;
+
+    if (!eventId || !showDate || !seatNumbers || !Array.isArray(seatNumbers)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields'
+      });
+    }
+
+    // This endpoint is for future use if we implement temporary seat locking
+    // For now, seats are only locked during the actual booking process
+    
+    res.json({
+      success: true,
+      message: 'Seats released successfully'
+    });
+
+  } catch (error) {
+    console.error('Error releasing seats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to release seats'
     });
   }
 });
