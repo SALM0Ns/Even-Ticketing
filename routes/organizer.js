@@ -27,6 +27,46 @@ const upload = multer({
   }
 });
 
+// Generate show dates for events
+function generateShowDates(baseDate, hour = 19, minute = 0) {
+  const showDates = [];
+  
+  // Generate 7 show dates starting from base date
+  for (let i = 0; i < 7; i++) {
+    const showDate = new Date(baseDate);
+    showDate.setDate(baseDate.getDate() + i);
+    showDate.setHours(hour, minute, 0, 0);
+    
+    showDates.push({
+      date: showDate,
+      seating: {
+        totalSeats: 198, // 11 rows × 18 seats
+        takenSeats: [], // Start with no taken seats
+        availableSeats: 198 // All seats available initially
+      }
+    });
+  }
+  
+  return showDates;
+}
+
+// Generate random taken seats for demo purposes
+function generateRandomTakenSeats(totalSeats, percentage) {
+  const takenCount = Math.floor(totalSeats * percentage);
+  const takenSeats = [];
+  
+  for (let i = 0; i < takenCount; i++) {
+    let seatNumber;
+    do {
+      seatNumber = Math.floor(Math.random() * totalSeats) + 1;
+    } while (takenSeats.includes(seatNumber));
+    
+    takenSeats.push(seatNumber);
+  }
+  
+  return takenSeats;
+}
+
 const parsePricingFields = (body) => {
   const read = (key) => body[`pricing[${key}]`] ?? body?.pricing?.[key];
   const toNumber = (value) => {
@@ -396,9 +436,13 @@ router.post('/events/create', requireOrganizer, upload.single('image'), async (r
       return res.redirect('/organizer/events/create');
     }
     
+    // Generate show dates automatically
+    const showDates = generateShowDates(new Date(date), 19, 0); // 7:00 PM default
+    event.showDates = showDates;
+    
     await event.save();
     
-    req.flash('success', 'Event created successfully');
+    req.flash('success', 'Event created successfully with show dates');
     res.redirect('/organizer/events');
   } catch (error) {
     console.error('Create event error:', error);
