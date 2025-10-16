@@ -603,8 +603,33 @@ router.post('/events/:id/delete', requireOrganizer, async (req, res) => {
       return res.redirect('/organizer/events');
     }
     
-    // Delete associated tickets
-    await Ticket.deleteMany({ event: id });
+    // Get all tickets for this event and mark them as cancelled
+    const tickets = await Ticket.find({ event: id }).populate('user', 'name email');
+    
+    if (tickets.length > 0) {
+      // Mark all tickets as cancelled instead of deleting them
+      await Ticket.updateMany(
+        { event: id },
+        { 
+          status: 'cancelled',
+          cancelledAt: new Date(),
+          cancellationReason: 'Event deleted by organizer'
+        }
+      );
+
+      // Also update UserTickets if they exist
+      const UserTicket = require('../models/UserTicket');
+      await UserTicket.updateMany(
+        { 'event.eventId': id },
+        { 
+          status: 'cancelled',
+          cancelledAt: new Date(),
+          cancellationReason: 'Event deleted by organizer'
+        }
+      );
+
+      console.log(`✅ Marked ${tickets.length} tickets as cancelled for deleted event: ${event.name}`);
+    }
     
     // Delete event
     await event.deleteOne();

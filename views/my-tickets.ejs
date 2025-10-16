@@ -333,7 +333,8 @@ function createETicketForMyTickets(ticket, individualTicket, index) {
                             ` : `
                                 <div class="text-center text-muted">
                                     <i class="fas fa-ban me-1"></i>Ticket Cancelled
-                                    ${ticket.cancellationReason ? `<br><small>Reason: ${ticket.cancellationReason}</small>` : ''}
+                                    ${ticket.cancellationReason ? `<br><small class="text-danger">Reason: ${ticket.cancellationReason}</small>` : ''}
+                                    ${ticket.cancelledAt ? `<br><small class="text-muted">Cancelled: ${new Date(ticket.cancelledAt).toLocaleDateString()}</small>` : ''}
                                 </div>
                             `}
                         </div>

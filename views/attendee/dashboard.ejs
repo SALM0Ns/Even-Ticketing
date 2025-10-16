@@ -220,6 +220,13 @@ async function loadRecentTickets() {
                             <button class="btn btn-outline-warning btn-sm mt-1" onclick="cancelTicketFromDashboard('${ticket._id}')">
                                 <i class="fas fa-times me-1"></i>Cancel
                             </button>
+                        ` : ticket.status === 'cancelled' ? `
+                            <div class="text-center mt-1">
+                                <small class="text-danger">
+                                    <i class="fas fa-ban me-1"></i>Cancelled
+                                    ${ticket.cancellationReason ? `<br>${ticket.cancellationReason}` : ''}
+                                </small>
+                            </div>
                         ` : ''}
                     </div>
                 </div>

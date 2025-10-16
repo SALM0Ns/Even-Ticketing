@@ -323,6 +323,17 @@ router.post('/events/:category/:id/delete', requireAdmin, async (req, res) => {
         }
       );
 
+      // Also update UserTickets if they exist
+      const UserTicket = require('../models/UserTicket');
+      await UserTicket.updateMany(
+        { 'event.eventId': id },
+        { 
+          status: 'cancelled',
+          cancelledAt: new Date(),
+          cancellationReason: 'Event deleted by admin'
+        }
+      );
+
       // Process refunds (in a real app, you'd integrate with payment gateway)
       const refunds = [];
       for (const ticket of tickets) {
