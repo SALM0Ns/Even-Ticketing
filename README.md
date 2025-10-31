@@ -35,7 +35,7 @@ A comprehensive event ticketing platform built with Node.js, Express.js, EJS, an
    * bcryptjs for password hashing
    * Cloudinary for image management
 
-## � Installation
+##  Installation
 
 1. **Clone the repository**  
 ```bash
@@ -270,7 +270,7 @@ This will start the server with nodemon for automatic restarts on file changes.
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## � Support
+##  Support
 
 For support and questions, please contact the development team or create an issue in the repository.
 
