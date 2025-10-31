@@ -2,7 +2,7 @@
 
 A comprehensive event ticketing platform built with Node.js, Express.js, EJS, and MongoDB. Features QR code e-tickets, dynamic venue selection, and role-based access control for Movies, Stage Plays, and Live Orchestra events.
 
-## 🎫 Features
+## � Features
 
 ### Core Functionality
 
@@ -22,7 +22,7 @@ A comprehensive event ticketing platform built with Node.js, Express.js, EJS, an
 * **Ticket Management**: Complete ticket lifecycle management
 * **Real-time Statistics**: Live dashboard with sales analytics
 
-## 🚀 Technology Stack
+##  Technology Stack
 
 * **Backend**: Node.js, Express.js
 * **Frontend**: EJS (Embedded JavaScript templates)
@@ -35,7 +35,7 @@ A comprehensive event ticketing platform built with Node.js, Express.js, EJS, an
    * bcryptjs for password hashing
    * Cloudinary for image management
 
-## 📦 Installation
+## � Installation
 
 1. **Clone the repository**  
 ```bash
@@ -61,7 +61,7 @@ npm run dev
 npm start
 ```
 
-## ⚙️ Environment Variables
+##  Environment Variables
 
 Create a `.env` file in the root directory with the following variables:
 
@@ -86,7 +86,7 @@ APP_NAME=CursedTicket
 APP_URL=http://localhost:3001
 ```
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 Even-Ticketing/
@@ -149,7 +149,7 @@ Even-Ticketing/
 └── README.md               # This file
 ```
 
-## 👥 User Roles & Permissions
+##  User Roles & Permissions
 
 ### Guest Users
 * View homepage and event listings
@@ -172,7 +172,7 @@ Even-Ticketing/
 * Manage event details and pricing
 * Access to venue management
 
-## 🔌 API Endpoints
+##  API Endpoints
 
 ### Authentication
 * `POST /auth/register` - User registration
@@ -200,7 +200,7 @@ Even-Ticketing/
 * `GET /tickets/my-tickets` - Get user's tickets
 * `GET /tickets/:id/qr` - Get ticket QR code
 
-## 🛠️ Development
+##  Development
 
 ### Running in Development Mode
 ```bash
@@ -234,7 +234,7 @@ This will start the server with nodemon for automatic restarts on file changes.
 * capacity and amenities
 * venue type (cinema, theater, concert_hall)
 
-## 🎨 Key Features
+##  Key Features
 
 ### Dynamic Venue Selection
 - Real-time venue loading based on event category
@@ -258,7 +258,7 @@ This will start the server with nodemon for automatic restarts on file changes.
 - Custom CSS for enhanced UX
 - Cross-browser compatibility
 
-## 🤝 Contributing
+##  Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
@@ -266,15 +266,15 @@ This will start the server with nodemon for automatic restarts on file changes.
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## � Support
 
 For support and questions, please contact the development team or create an issue in the repository.
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - Bootstrap 5 for responsive design
 - MongoDB for database management
@@ -283,4 +283,4 @@ For support and questions, please contact the development team or create an issu
 
 ---
 
-**CursedTicket** - Premium Entertainment Ticketing System 🎫✨
+**CursedTicket** - Premium Entertainment Ticketing System ✨
