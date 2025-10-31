@@ -2,7 +2,7 @@
 
 A comprehensive event ticketing platform built with Node.js, Express.js, EJS, and MongoDB. Features QR code e-tickets, dynamic venue selection, and role-based access control for Movies, Stage Plays, and Live Orchestra events.
 
-## � Features
+##  Features
 
 ### Core Functionality
 
